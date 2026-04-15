@@ -33,7 +33,7 @@ function leftAccentColor(
 ): string {
   switch (color) {
     case 'neutral':
-      return euiTheme.colors.borderStrongNeutral;
+      return euiTheme.colors.borderStrongPrimary;
     case 'success':
       return euiTheme.colors.borderStrongSuccess;
     case 'warning':
@@ -143,12 +143,19 @@ export function Toast({
           gap: ${euiTheme.size.m};
         `}
       >
-        <EuiFlexGroup direction="column" gutterSize="xs" responsive={false}>
+        <div
+          css={css`
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: ${euiTheme.size.xxs};
+          `}
+        >
           <EuiTitle size="xs">
             <h4>{title}</h4>
           </EuiTitle>
           {children ? <EuiText size="s">{children}</EuiText> : null}
-        </EuiFlexGroup>
+        </div>
 
         <span
           css={css`

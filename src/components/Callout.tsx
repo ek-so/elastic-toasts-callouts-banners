@@ -13,10 +13,14 @@ import type { ReactNode } from 'react';
 
 export type CalloutColor = 'success' | 'warning' | 'danger' | 'neutral';
 
+export type CalloutSize = 'm' | 's';
+
 export type CalloutProps = {
   title: ReactNode;
   children?: ReactNode;
   color?: CalloutColor;
+  /** `m` — default padding and title/body/button scales; `s` — 12px/16px padding, 8px gap before actions; inline lead uses `xxs` title + `s` body. */
+  size?: CalloutSize;
   primaryLabel?: ReactNode;
   secondaryLabel?: ReactNode;
   onPrimaryClick?: () => void;
@@ -87,11 +91,15 @@ function buttonColor(color: CalloutColor): 'primary' | 'success' | 'warning' | '
   }
 }
 
-/** Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius only). */
+/**
+ * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius only).
+ * `size="m"` — stacked title (`EuiTitle` `xs`) + body (`EuiText` `s`). `size="s"` — one wrapping lead line: `EuiTitle` `xxs` + full stop + `EuiText` `s` inline in the same block.
+ */
 export function Callout({
   title,
   children,
   color = 'success',
+  size = 'm',
   primaryLabel = 'Primary',
   secondaryLabel = 'Secondary',
   onPrimaryClick,
@@ -107,6 +115,33 @@ export function Callout({
   const corner = euiTheme.size.xxs;
   const thin = euiTheme.border.width.thin;
   const leftStripe = '3px';
+  const isS = size === 's';
+  /** Size `s`: fixed padding per layout spec — 12px block, 16px inline. */
+  const rootPadding = isS
+    ? '12px 16px 12px 16px'
+    : `${euiTheme.size.base} ${euiTheme.size.xxl} ${euiTheme.size.base} ${euiTheme.size.l}`;
+  const closeInset = isS ? '12px' : euiTheme.size.base;
+  const closeInsetInline = isS ? '16px' : euiTheme.size.base;
+  const blockGap = isS ? '8px' : euiTheme.size.m;
+  const actionsGutter = isS ? 'xs' : 's';
+
+  /** Size `s`: inline `h5` + body so copy wraps together (heading stays `EuiTitle`, not `<strong>` in a `<p>`). */
+  const sLeadWrapCss = css`
+    min-width: 0;
+    word-break: break-word;
+  `;
+  const sLeadHeadingCss = css`
+    display: inline;
+    margin: 0;
+    vertical-align: baseline;
+  `;
+  const sLeadBodyCss = css`
+    &.euiText {
+      display: inline;
+    }
+    margin-block: 0;
+    vertical-align: baseline;
+  `;
 
   const rootCss = css`
     position: relative;
@@ -121,7 +156,7 @@ export function Callout({
     border-right: ${thin} solid ${edge};
     border-bottom: ${thin} solid ${edge};
     border-left: none;
-    padding: ${euiTheme.size.base} ${euiTheme.size.xxl} ${euiTheme.size.base} ${euiTheme.size.l};
+    padding: ${rootPadding};
     word-break: break-word;
 
     &::after {
@@ -142,8 +177,8 @@ export function Callout({
   const closeCss = css`
     position: absolute;
     z-index: 2;
-    top: ${euiTheme.size.base};
-    right: ${euiTheme.size.base};
+    top: ${closeInset};
+    right: ${closeInsetInline};
   `;
 
   return (
@@ -153,12 +188,13 @@ export function Callout({
       role="status"
       aria-live="polite"
       data-test-subj="callout"
+      data-callout-size={size}
     >
       <span css={closeCss}>
         <EuiButtonIcon
           iconType="cross"
-          color="text"
-          size="xs"
+          color={btnColor}
+          size={isS ? 's' : 'xs'}
           display="empty"
           aria-label="Dismiss notification"
           onClick={() => onDismiss?.()}
@@ -172,15 +208,50 @@ export function Callout({
           display: flex;
           flex-direction: column;
           align-items: stretch;
-          gap: ${euiTheme.size.m};
+          gap: ${blockGap};
         `}
       >
-        <EuiFlexGroup direction="column" gutterSize="xs" responsive={false}>
-          <EuiTitle size="xs">
-            <h4>{title}</h4>
-          </EuiTitle>
-          {children ? <EuiText size="s">{children}</EuiText> : null}
-        </EuiFlexGroup>
+        <div
+          css={
+            isS
+              ? css`
+                  display: block;
+                  min-width: 0;
+                `
+              : css`
+                  display: flex;
+                  flex-direction: column;
+                  align-items: stretch;
+                  gap: ${euiTheme.size.xxs};
+                `
+          }
+        >
+          {isS ? (
+            <div css={sLeadWrapCss}>
+              <EuiTitle size="xxs">
+                <h5 css={sLeadHeadingCss}>
+                  {title}
+                  {'.'}
+                </h5>
+              </EuiTitle>
+              {children != null ? (
+                <>
+                  {' '}
+                  <EuiText size="s" component="span" css={sLeadBodyCss}>
+                    {children}
+                  </EuiText>
+                </>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <EuiTitle size="xs">
+                <h4>{title}</h4>
+              </EuiTitle>
+              {children ? <EuiText size="s">{children}</EuiText> : null}
+            </>
+          )}
+        </div>
 
         <span
           css={css`
@@ -191,7 +262,7 @@ export function Callout({
         >
           <EuiFlexGroup
             responsive={false}
-            gutterSize="s"
+            gutterSize={actionsGutter}
             alignItems="center"
             justifyContent="flexStart"
             wrap
@@ -224,7 +295,11 @@ export function Callout({
                   max-width: 100%;
                 `}
               >
-                <EuiButtonEmpty size="s" color={btnColor} onClick={onSecondaryClick}>
+                <EuiButtonEmpty
+                  size="s"
+                  color={btnColor}
+                  onClick={onSecondaryClick}
+                >
                   {secondaryLabel}
                 </EuiButtonEmpty>
               </span>
