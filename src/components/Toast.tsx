@@ -58,7 +58,7 @@ function buttonColor(color: ToastColor): 'primary' | 'success' | 'warning' | 'da
 
 /**
  * Toast card aligned to Figma node 6150:6490 (Banners–toasts–callouts):
- * 3px left stripe (`::after`, rounded only on outer TL/BL corners), large shadow, dismiss like `EuiToast`,
+ * 3px left stripe (`::after`, TL/BL radius 1px), 40px end padding for dismiss, large shadow,
  * Primary CTA uses base `EuiButton` (`fill={false}` / secondary prominence) + semantic `color`;
  * second action is `EuiButtonEmpty` (matches EUI guidance for action hierarchy).
  */
@@ -79,16 +79,20 @@ export function Toast({
   const btnColor = buttonColor(color);
   const leftStripe = '3px';
   const corner = euiTheme.size.xxs;
+  const leftCorner = '1px';
 
   const rootCss = css`
     position: relative;
     box-sizing: border-box;
     width: 320px;
     max-width: 100%;
-    border-radius: ${corner};
+    border-top-left-radius: ${leftCorner};
+    border-bottom-left-radius: ${leftCorner};
+    border-top-right-radius: ${corner};
+    border-bottom-right-radius: ${corner};
     background-color: ${euiTheme.colors.emptyShade};
     border: none;
-    padding: ${euiTheme.size.base} ${euiTheme.size.xxl} ${euiTheme.size.base} ${euiTheme.size.l};
+    padding: ${euiTheme.size.base} 40px ${euiTheme.size.base} ${euiTheme.size.l};
     word-break: break-word;
     ${euiShadowLarge(euiThemeContext, { borderAllInHighContrastMode: false })}
 
@@ -101,8 +105,8 @@ export function Toast({
       bottom: 0;
       width: ${leftStripe};
       background-color: ${leftAccent};
-      border-top-left-radius: ${corner};
-      border-bottom-left-radius: ${corner};
+      border-top-left-radius: ${leftCorner};
+      border-bottom-left-radius: ${leftCorner};
       pointer-events: none;
     }
   `;
@@ -150,7 +154,7 @@ export function Toast({
             display: flex;
             flex-direction: column;
             align-items: stretch;
-            gap: ${euiTheme.size.xxs};
+            gap: ${euiTheme.size.xs};
           `}
         >
           <EuiTitle size="xs">

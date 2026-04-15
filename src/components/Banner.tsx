@@ -11,16 +11,13 @@ import {
 } from '@elastic/eui';
 import type { ReactNode } from 'react';
 
-export type CalloutColor = 'success' | 'warning' | 'danger' | 'neutral';
+export type BannerSize = 'm' | 's' | 'l';
 
-export type CalloutSize = 'm' | 's';
-
-export type CalloutProps = {
+export type BannerProps = {
   title: ReactNode;
   children?: ReactNode;
-  color?: CalloutColor;
-  /** `m` — default scales, 40px end padding; `s` — 12px/16px + 40px end, 8px gap before actions, inline lead, dismiss `xs`. */
-  size?: CalloutSize;
+  /** `s` / `m` match callout spacing; `l` uses 16px root vertical inset plus 8px inner shell, 40px right, 32px left (tokens). */
+  size?: BannerSize;
   primaryLabel?: ReactNode;
   secondaryLabel?: ReactNode;
   onPrimaryClick?: () => void;
@@ -29,76 +26,13 @@ export type CalloutProps = {
   className?: string;
 };
 
-/** `neutral` uses primary base background / border tokens. */
-function calloutBackground(
-  euiTheme: ReturnType<typeof useEuiTheme>['euiTheme'],
-  color: CalloutColor
-): string {
-  switch (color) {
-    case 'neutral':
-      return euiTheme.colors.backgroundBasePrimary;
-    case 'success':
-      return euiTheme.colors.backgroundBaseSuccess;
-    case 'warning':
-      return euiTheme.colors.backgroundBaseWarning;
-    case 'danger':
-      return euiTheme.colors.backgroundBaseDanger;
-  }
-}
-
-function calloutBorder(
-  euiTheme: ReturnType<typeof useEuiTheme>['euiTheme'],
-  color: CalloutColor
-): string {
-  switch (color) {
-    case 'neutral':
-      return euiTheme.colors.borderBasePrimary;
-    case 'success':
-      return euiTheme.colors.borderBaseSuccess;
-    case 'warning':
-      return euiTheme.colors.borderBaseWarning;
-    case 'danger':
-      return euiTheme.colors.borderBaseDanger;
-  }
-}
-
-function calloutLeftAccent(
-  euiTheme: ReturnType<typeof useEuiTheme>['euiTheme'],
-  color: CalloutColor
-): string {
-  switch (color) {
-    case 'neutral':
-      return euiTheme.colors.borderStrongPrimary;
-    case 'success':
-      return euiTheme.colors.borderStrongSuccess;
-    case 'warning':
-      return euiTheme.colors.borderStrongWarning;
-    case 'danger':
-      return euiTheme.colors.borderStrongDanger;
-  }
-}
-
-function buttonColor(color: CalloutColor): 'primary' | 'success' | 'warning' | 'danger' {
-  switch (color) {
-    case 'neutral':
-      return 'primary';
-    case 'success':
-      return 'success';
-    case 'warning':
-      return 'warning';
-    case 'danger':
-      return 'danger';
-  }
-}
-
 /**
- * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius only).
- * `size="m"` — stacked title (`EuiTitle` `xs`) + body (`EuiText` `s`), `xs` gap between. `size="s"` — one wrapping lead line: `EuiTitle` `xxs` + full stop + `EuiText` `s` inline in the same block.
+ * Full-width-style banner shell aligned to callout spacing and typography (no left stripe).
+ * Sizes `m` / `s` match callout rhythm; `l` uses larger vertical padding and wider left inset. Highlighted surface, subdued border; body subdued; dismiss `text`.
  */
-export function Callout({
+export function Banner({
   title,
   children,
-  color = 'success',
   size = 'm',
   primaryLabel = 'Primary',
   secondaryLabel = 'Secondary',
@@ -106,27 +40,29 @@ export function Callout({
   onSecondaryClick,
   onDismiss,
   className,
-}: CalloutProps) {
+}: BannerProps) {
   const { euiTheme } = useEuiTheme();
-  const bg = calloutBackground(euiTheme, color);
-  const edge = calloutBorder(euiTheme, color);
-  const leftAccent = calloutLeftAccent(euiTheme, color);
-  const btnColor = buttonColor(color);
+  const bg = euiTheme.colors.backgroundBaseHighlighted;
+  const edge = euiTheme.colors.borderBaseSubdued;
+  const btnColor = 'primary';
   const corner = euiTheme.size.xxs;
+  const leftCorner = '1px';
   const thin = euiTheme.border.width.thin;
-  const leftStripe = '3px';
   const isS = size === 's';
-  /** Size `s`: 12px vertical / 16px start; 40px end so dismiss does not overlap copy. */
-  const rootPadding = isS
-    ? '12px 40px 12px 16px'
-    : `${euiTheme.size.base} 40px ${euiTheme.size.base} ${euiTheme.size.l}`;
+  const isL = size === 'l';
+  const rootPadding =
+    size === 's'
+      ? '12px 40px 12px 16px'
+      : size === 'l'
+        ? `${euiTheme.size.base} ${euiTheme.size.xxl} ${euiTheme.size.base} ${euiTheme.size.xl}`
+        : `${euiTheme.size.base} 40px ${euiTheme.size.base} ${euiTheme.size.l}`;
   const dismissFromEdge = `calc(${euiTheme.size.xs} + 4px)`;
   const closeInset = dismissFromEdge;
   const closeInsetInline = dismissFromEdge;
   const blockGap = isS ? '8px' : euiTheme.size.m;
+  const titleBodyGap = isL ? euiTheme.size.s : euiTheme.size.xs;
   const actionsGutter = isS ? 'xs' : 's';
 
-  /** Size `s`: inline `h5` + body so copy wraps together (heading stays `EuiTitle`, not `<strong>` in a `<p>`). */
   const sLeadWrapCss = css`
     min-width: 0;
     word-break: break-word;
@@ -150,29 +86,15 @@ export function Callout({
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    border-radius: ${corner};
+    border-top-left-radius: ${leftCorner};
+    border-bottom-left-radius: ${leftCorner};
+    border-top-right-radius: ${corner};
+    border-bottom-right-radius: ${corner};
     overflow: hidden;
     background-color: ${bg};
-    border-top: ${thin} solid ${edge};
-    border-right: ${thin} solid ${edge};
-    border-bottom: ${thin} solid ${edge};
-    border-left: none;
+    border: ${thin} solid ${edge};
     padding: ${rootPadding};
     word-break: break-word;
-
-    &::after {
-      content: '';
-      position: absolute;
-      z-index: 0;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: ${leftStripe};
-      background-color: ${leftAccent};
-      border-top-left-radius: ${corner};
-      border-bottom-left-radius: ${corner};
-      pointer-events: none;
-    }
   `;
 
   const closeCss = css`
@@ -188,13 +110,13 @@ export function Callout({
       css={rootCss}
       role="status"
       aria-live="polite"
-      data-test-subj="callout"
-      data-callout-size={size}
+      data-test-subj="banner"
+      data-banner-size={size}
     >
       <span css={closeCss}>
         <EuiButtonIcon
           iconType="cross"
-          color={btnColor}
+          color="text"
           size="xs"
           display="empty"
           aria-label="Dismiss notification"
@@ -210,6 +132,11 @@ export function Callout({
           flex-direction: column;
           align-items: stretch;
           gap: ${blockGap};
+          ${isL
+            ? css`
+                padding-block: ${euiTheme.size.s};
+              `
+            : undefined}
         `}
       >
         <div
@@ -223,7 +150,7 @@ export function Callout({
                   display: flex;
                   flex-direction: column;
                   align-items: stretch;
-                  gap: ${euiTheme.size.xs};
+                  gap: ${titleBodyGap};
                 `
           }
         >
@@ -238,7 +165,7 @@ export function Callout({
               {children != null ? (
                 <>
                   {' '}
-                  <EuiText size="s" component="span" css={sLeadBodyCss}>
+                  <EuiText size="s" component="span" color="subdued" css={sLeadBodyCss}>
                     {children}
                   </EuiText>
                 </>
@@ -246,10 +173,14 @@ export function Callout({
             </div>
           ) : (
             <>
-              <EuiTitle size="xs">
-                <h4>{title}</h4>
+              <EuiTitle size={isL ? 's' : 'xs'}>
+                {isL ? <h3>{title}</h3> : <h4>{title}</h4>}
               </EuiTitle>
-              {children ? <EuiText size="s">{children}</EuiText> : null}
+              {children ? (
+                <EuiText size="s" color="subdued">
+                  {children}
+                </EuiText>
+              ) : null}
             </>
           )}
         </div>
@@ -296,11 +227,7 @@ export function Callout({
                   max-width: 100%;
                 `}
               >
-                <EuiButtonEmpty
-                  size="s"
-                  color={btnColor}
-                  onClick={onSecondaryClick}
-                >
+                <EuiButtonEmpty size="s" color={btnColor} onClick={onSecondaryClick}>
                   {secondaryLabel}
                 </EuiButtonEmpty>
               </span>

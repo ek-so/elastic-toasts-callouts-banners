@@ -10,6 +10,7 @@ import {
   useEuiTheme,
 } from '@elastic/eui';
 
+import { Banner } from './components/Banner';
 import { Callout } from './components/Callout';
 import { Toast } from './components/Toast';
 
@@ -123,12 +124,49 @@ function TopicPanel({ topic }: { topic: TopicTab }) {
       );
     case 'banners':
       return (
-        <EuiText>
-          <p>
-            <strong>Banners</strong> — prominent full-width messages at the top (or bottom) of
-            a view, for announcements, outages, or policy notices.
-          </p>
-        </EuiText>
+        <EuiFlexGroup
+          direction="column"
+          gutterSize="m"
+          alignItems="stretch"
+          css={{ maxWidth: '100%' }}
+        >
+          <EuiFlexItem grow={false}>
+            <EuiText size="s">
+              <p>
+                <strong>Size L</strong>
+              </p>
+            </EuiText>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <Banner size="l" title="Account notice">
+              Extra padding for emphasis when the message should feel more substantial than size M.
+            </Banner>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiText size="s">
+              <p>
+                <strong>Size M</strong>
+              </p>
+            </EuiText>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <Banner size="m" title="Scheduled maintenance">
+              We will deploy updates on Tuesday 02:00–04:00 UTC. Brief interruptions are possible.
+            </Banner>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiText size="s">
+              <p>
+                <strong>Size S</strong>
+              </p>
+            </EuiText>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <Banner size="s" title="New feature available">
+              Inline title and body for tight headers—same actions as larger sizes.
+            </Banner>
+          </EuiFlexItem>
+        </EuiFlexGroup>
       );
     default:
       return null;
@@ -139,6 +177,17 @@ export function App() {
   const { euiTheme } = useEuiTheme();
   const [selectedTab, setSelectedTab] = useState<TopicTab>('toasts');
 
+  const constrained = {
+    maxWidth: 960,
+    margin: '0 auto' as const,
+    width: '100%',
+    boxSizing: 'border-box' as const,
+    paddingLeft: euiTheme.size.l,
+    paddingRight: euiTheme.size.l,
+  };
+
+  const headerEdge = `${euiTheme.border.width.thin} solid ${euiTheme.colors.borderBaseSubdued}`;
+
   return (
     <div
       css={{
@@ -146,42 +195,66 @@ export function App() {
         boxSizing: 'border-box',
         backgroundColor: euiTheme.colors.emptyShade,
         color: euiTheme.colors.text,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      <div
+      <header
         css={{
-          maxWidth: 960,
-          margin: '0 auto',
-          padding: euiTheme.size.l,
+          flexShrink: 0,
+          backgroundColor: euiTheme.colors.emptyShade,
+          borderBottom: headerEdge,
         }}
       >
-        <EuiTabs expand bottomBorder>
-          <EuiTab
-            isSelected={selectedTab === 'toasts'}
-            onClick={() => setSelectedTab('toasts')}
-          >
-            Toasts
-          </EuiTab>
-          <EuiTab
-            isSelected={selectedTab === 'callouts'}
-            onClick={() => setSelectedTab('callouts')}
-          >
-            Callouts
-          </EuiTab>
-          <EuiTab
-            isSelected={selectedTab === 'banners'}
-            onClick={() => setSelectedTab('banners')}
-          >
-            Banners
-          </EuiTab>
-        </EuiTabs>
+        <div
+          css={{
+            ...constrained,
+            paddingTop: euiTheme.size.l,
+          }}
+        >
+          <EuiTabs expand bottomBorder>
+            <EuiTab
+              isSelected={selectedTab === 'toasts'}
+              onClick={() => setSelectedTab('toasts')}
+            >
+              Toasts
+            </EuiTab>
+            <EuiTab
+              isSelected={selectedTab === 'callouts'}
+              onClick={() => setSelectedTab('callouts')}
+            >
+              Callouts
+            </EuiTab>
+            <EuiTab
+              isSelected={selectedTab === 'banners'}
+              onClick={() => setSelectedTab('banners')}
+            >
+              Banners
+            </EuiTab>
+          </EuiTabs>
+        </div>
+      </header>
 
-        <EuiSpacer size="l" />
+      <main
+        css={{
+          flex: 1,
+          minHeight: 0,
+          overflow: 'auto',
+        }}
+      >
+        <div
+          css={{
+            ...constrained,
+            paddingBottom: euiTheme.size.l,
+          }}
+        >
+          <EuiSpacer size="l" />
 
-        <EuiPanel paddingSize="l" hasBorder hasShadow={false}>
-          <TopicPanel topic={selectedTab} />
-        </EuiPanel>
-      </div>
+          <EuiPanel paddingSize="l" hasBorder hasShadow={false}>
+            <TopicPanel topic={selectedTab} />
+          </EuiPanel>
+        </div>
+      </main>
     </div>
   );
 }
