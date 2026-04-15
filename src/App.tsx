@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   EuiFlexGroup,
   EuiFlexItem,
@@ -10,11 +10,43 @@ import {
   useEuiTheme,
 } from '@elastic/eui';
 
-import { Banner } from './components/Banner';
+import { Banner, type BannerSize } from './components/Banner';
 import { Callout } from './components/Callout';
 import { Toast } from './components/Toast';
 
 type TopicTab = 'toasts' | 'callouts' | 'banners';
+
+function BannerSizeSection({
+  size,
+  title,
+  children,
+}: {
+  size: BannerSize;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <>
+      <EuiFlexItem grow={false}>
+        <EuiText size="s">
+          <p>
+            <strong>Size {size.toUpperCase()}</strong>
+          </p>
+        </EuiText>
+      </EuiFlexItem>
+      <EuiFlexItem grow={false}>
+        <Banner size={size} title={title}>
+          {children}
+        </Banner>
+      </EuiFlexItem>
+      <EuiFlexItem grow={false}>
+        <Banner size={size} image={null} title={title}>
+          {children}
+        </Banner>
+      </EuiFlexItem>
+    </>
+  );
+}
 
 function TopicPanel({ topic }: { topic: TopicTab }) {
   switch (topic) {
@@ -130,42 +162,21 @@ function TopicPanel({ topic }: { topic: TopicTab }) {
           alignItems="stretch"
           css={{ maxWidth: '100%' }}
         >
+          <BannerSizeSection size="l" title="Account notice">
+            Extra padding for emphasis when the message should feel more substantial than size M.
+          </BannerSizeSection>
           <EuiFlexItem grow={false}>
-            <EuiText size="s">
-              <p>
-                <strong>Size L</strong>
-              </p>
-            </EuiText>
+            <EuiSpacer size="l" />
           </EuiFlexItem>
+          <BannerSizeSection size="m" title="Scheduled maintenance">
+            We will deploy updates on Tuesday 02:00–04:00 UTC. Brief interruptions are possible.
+          </BannerSizeSection>
           <EuiFlexItem grow={false}>
-            <Banner size="l" title="Account notice">
-              Extra padding for emphasis when the message should feel more substantial than size M.
-            </Banner>
+            <EuiSpacer size="l" />
           </EuiFlexItem>
-          <EuiFlexItem grow={false}>
-            <EuiText size="s">
-              <p>
-                <strong>Size M</strong>
-              </p>
-            </EuiText>
-          </EuiFlexItem>
-          <EuiFlexItem grow={false}>
-            <Banner size="m" title="Scheduled maintenance">
-              We will deploy updates on Tuesday 02:00–04:00 UTC. Brief interruptions are possible.
-            </Banner>
-          </EuiFlexItem>
-          <EuiFlexItem grow={false}>
-            <EuiText size="s">
-              <p>
-                <strong>Size S</strong>
-              </p>
-            </EuiText>
-          </EuiFlexItem>
-          <EuiFlexItem grow={false}>
-            <Banner size="s" title="New feature available">
-              Inline title and body for tight headers—same actions as larger sizes.
-            </Banner>
-          </EuiFlexItem>
+          <BannerSizeSection size="s" title="New feature available">
+            Inline title and body for tight headers—same actions as larger sizes.
+          </BannerSizeSection>
         </EuiFlexGroup>
       );
     default:
@@ -186,46 +197,54 @@ export function App() {
     paddingRight: euiTheme.size.l,
   };
 
-  const headerEdge = `${euiTheme.border.width.thin} solid ${euiTheme.colors.borderBaseSubdued}`;
-
   return (
     <div
       css={{
-        minHeight: '100vh',
+        height: '100vh',
+        maxHeight: '100vh',
+        minHeight: 0,
         boxSizing: 'border-box',
         backgroundColor: euiTheme.colors.emptyShade,
         color: euiTheme.colors.text,
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
       <header
         css={{
           flexShrink: 0,
           backgroundColor: euiTheme.colors.emptyShade,
-          borderBottom: headerEdge,
+          width: '100%',
+          zIndex: 1,
         }}
       >
         <div
           css={{
             ...constrained,
-            paddingTop: euiTheme.size.l,
+            paddingTop: euiTheme.size.m,
           }}
         >
-          <EuiTabs expand bottomBorder>
+          <EuiTabs expand bottomBorder size="l" aria-label="Specimen topics">
             <EuiTab
+              id="toasts-tab"
+              aria-controls="topic-panel"
               isSelected={selectedTab === 'toasts'}
               onClick={() => setSelectedTab('toasts')}
             >
               Toasts
             </EuiTab>
             <EuiTab
+              id="callouts-tab"
+              aria-controls="topic-panel"
               isSelected={selectedTab === 'callouts'}
               onClick={() => setSelectedTab('callouts')}
             >
               Callouts
             </EuiTab>
             <EuiTab
+              id="banners-tab"
+              aria-controls="topic-panel"
               isSelected={selectedTab === 'banners'}
               onClick={() => setSelectedTab('banners')}
             >
@@ -236,6 +255,9 @@ export function App() {
       </header>
 
       <main
+        id="topic-panel"
+        role="tabpanel"
+        aria-labelledby={`${selectedTab}-tab`}
         css={{
           flex: 1,
           minHeight: 0,

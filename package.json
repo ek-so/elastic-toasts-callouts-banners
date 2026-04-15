@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "webpack serve --mode development",
-    "build": "tsc --noEmit && webpack --mode production",
+    "build": "tsc --noEmit && webpack --mode production && mkdir -p dist/banners && cp public/banners/*.svg dist/banners/",
     "preview": "serve dist -l 4173"
   },
   "dependencies": {
