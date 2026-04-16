@@ -11,6 +11,8 @@ import {
 } from '@elastic/eui';
 import type { ReactNode } from 'react';
 
+import { notificationSlots } from './notificationSlots';
+
 export type CalloutColor = 'success' | 'warning' | 'danger' | 'neutral';
 
 export type CalloutSize = 'm' | 's';
@@ -92,7 +94,7 @@ function buttonColor(color: CalloutColor): 'primary' | 'success' | 'warning' | '
 }
 
 /**
- * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius only).
+ * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius 2px).
  * `size="m"` — stacked title (`EuiTitle` `xs`) + body (`EuiText` `s`), `xs` gap between. `size="s"` — one wrapping lead line: `EuiTitle` `xxs` + full stop + `EuiText` `s` inline in the same block.
  */
 export function Callout({
@@ -112,7 +114,7 @@ export function Callout({
   const edge = calloutBorder(euiTheme, color);
   const leftAccent = calloutLeftAccent(euiTheme, color);
   const btnColor = buttonColor(color);
-  const corner = euiTheme.size.xxs;
+  const specimenBorderRadius = '2px';
   const thin = euiTheme.border.width.thin;
   const leftStripe = '3px';
   const isS = size === 's';
@@ -150,7 +152,7 @@ export function Callout({
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    border-radius: ${corner};
+    border-radius: ${specimenBorderRadius};
     overflow: hidden;
     background-color: ${bg};
     border-top: ${thin} solid ${edge};
@@ -169,8 +171,8 @@ export function Callout({
       bottom: 0;
       width: ${leftStripe};
       background-color: ${leftAccent};
-      border-top-left-radius: ${corner};
-      border-bottom-left-radius: ${corner};
+      border-top-left-radius: ${specimenBorderRadius};
+      border-bottom-left-radius: ${specimenBorderRadius};
       pointer-events: none;
     }
   `;
@@ -184,6 +186,7 @@ export function Callout({
 
   return (
     <div
+      data-slot={notificationSlots.root}
       className={className}
       css={rootCss}
       role="status"
@@ -203,6 +206,7 @@ export function Callout({
       </span>
 
       <div
+        data-slot={notificationSlots.contentBox}
         css={css`
           position: relative;
           z-index: 1;
@@ -213,51 +217,60 @@ export function Callout({
         `}
       >
         <div
-          css={
-            isS
-              ? css`
-                  display: block;
-                  min-width: 0;
-                `
-              : css`
-                  display: flex;
-                  flex-direction: column;
-                  align-items: stretch;
-                  gap: ${euiTheme.size.xs};
-                `
-          }
+          data-slot={notificationSlots.textWrapper}
+          css={css`
+            min-width: 0;
+            max-width: 100%;
+          `}
         >
-          {isS ? (
-            <div css={sLeadWrapCss}>
-              <EuiTitle size="xxs">
-                <h5 css={sLeadHeadingCss}>
-                  {title}
-                  {'.'}
-                </h5>
-              </EuiTitle>
-              {children != null ? (
-                <>
-                  {' '}
-                  <EuiText size="s" component="span" css={sLeadBodyCss}>
-                    {children}
-                  </EuiText>
-                </>
-              ) : null}
-            </div>
-          ) : (
-            <>
-              <EuiTitle size="xs">
-                <h4>{title}</h4>
-              </EuiTitle>
-              {children ? <EuiText size="s">{children}</EuiText> : null}
-            </>
-          )}
+          <div
+            data-slot={notificationSlots.textBox}
+            css={
+              isS
+                ? css`
+                    display: block;
+                    min-width: 0;
+                  `
+                : css`
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: ${euiTheme.size.xs};
+                  `
+            }
+          >
+            {isS ? (
+              <div css={sLeadWrapCss}>
+                <EuiTitle size="xxs">
+                  <h5 css={sLeadHeadingCss}>
+                    {title}
+                    {'.'}
+                  </h5>
+                </EuiTitle>
+                {children != null ? (
+                  <>
+                    {' '}
+                    <EuiText size="s" component="span" css={sLeadBodyCss}>
+                      {children}
+                    </EuiText>
+                  </>
+                ) : null}
+              </div>
+            ) : (
+              <>
+                <EuiTitle size="xs">
+                  <h4>{title}</h4>
+                </EuiTitle>
+                {children ? <EuiText size="s">{children}</EuiText> : null}
+              </>
+            )}
+          </div>
         </div>
 
-        <span
+        <div
+          data-slot={notificationSlots.buttonBox}
           css={css`
             align-self: flex-start;
-            display: inline-block;
             max-width: 100%;
           `}
         >
@@ -306,7 +319,7 @@ export function Callout({
               </span>
             </EuiFlexItem>
           </EuiFlexGroup>
-        </span>
+        </div>
       </div>
     </div>
   );

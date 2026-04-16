@@ -11,6 +11,8 @@ import {
 } from '@elastic/eui';
 import type { ReactNode } from 'react';
 
+import { notificationSlots } from './notificationSlots';
+
 export type BannerSize = 'm' | 's' | 'l';
 
 /** Default artwork lives in `public/banners/` (served as `/banners/*.svg`); copied into `dist/banners/` on `yarn build`. */
@@ -45,7 +47,7 @@ export type BannerProps = {
 
 /**
  * Full-width-style banner shell aligned to callout spacing and typography (no left stripe).
- * Sizes `m` / `s` match callout rhythm; `l` uses the same inner vertical padding as `m` and a wider horizontal inset on the shell. Default artwork per size is served from `public/banners/` (`/banners/*.svg`); override or hide with `image` / `image={null}`. Slot 32×32 / 64×64 / 120×120; image-to-copy gap `m` / `base` / `l`. Highlighted surface, subdued border; body subdued; dismiss `text`.
+ * Sizes `m` / `s` match callout rhythm; `l` uses the same inner vertical padding as `m` and a wider horizontal inset on the shell. Default artwork per size is served from `public/banners/` (`/banners/*.svg`); override or hide with `image` / `image={null}`. Slot 32×32 / 64×64 / 120×120; image-to-copy gap `m` (`s`) / `base` (`m`) / `l` (`l`). Highlighted surface, subdued border; body subdued; dismiss `text`.
  */
 export function Banner({
   title,
@@ -63,30 +65,32 @@ export function Banner({
   const bg = euiTheme.colors.backgroundBaseHighlighted;
   const edge = euiTheme.colors.borderBaseSubdued;
   const btnColor = 'primary';
-  const corner = euiTheme.size.xxs;
-  const leftCorner = '1px';
+  const specimenBorderRadius = '2px';
   const thin = euiTheme.border.width.thin;
   const isS = size === 's';
   const isL = size === 'l';
-  /** Horizontal inset on the bordered shell only; vertical rhythm lives on the inner content wrapper. */
-  const rootPaddingInline =
+  /**
+   * Shell padding. Size `s` matches small callouts: `12px 40px 12px 16px` (top / right / bottom / left).
+   * M/L keep vertical padding on the inner body (`contentPaddingBlock`); horizontal only on the shell.
+   */
+  const rootPadding =
     size === 's'
-      ? `0 40px 0 16px`
+      ? '12px 40px 12px 16px'
       : size === 'l'
         ? `0 ${euiTheme.size.xxl} 0 ${euiTheme.size.xl}`
         : `0 40px 0 ${euiTheme.size.l}`;
-  /** Top/bottom padding for the main column (image + copy + actions), not the outer shell. */
+  /** Top/bottom padding for the inner body; size `s` uses shell padding instead (see `rootPadding`). */
   const contentPaddingBlock =
-    size === 's' ? euiTheme.size.m : euiTheme.size.base;
+    size === 's' ? '0' : euiTheme.size.base;
   const dismissFromEdge = `calc(${euiTheme.size.xs} + 4px)`;
   const closeInset = dismissFromEdge;
   const closeInsetInline = dismissFromEdge;
-  /** Title ↔ body in stacked lead (`m` / `l`); token `s` ≈ 8px at default scale. */
-  const titleBodyGap = euiTheme.size.s;
+  /** Stacked title ↔ body (text box): M matches toast (`size.xs`); L uses `size.s` (8px at default theme scale). */
+  const titleBodyGap = size === 'm' ? euiTheme.size.xs : euiTheme.size.s;
   /** Lead stack ↔ action buttons: `s` on compact, `m` (≈12px) on M/L. */
   const leadToActionsGap = isS ? euiTheme.size.s : euiTheme.size.m;
-  /** Top/bottom inset of the copy column beside media (title + body + actions). */
-  const copyStackPaddingBlock = euiTheme.size.s;
+  /** Top/bottom inset on the content box: size `l` only (`size.s` ≈ 8px); M/S have no extra block padding. */
+  const copyStackPaddingBlock = isL ? euiTheme.size.s : 0;
   const actionsGutter = isS ? 'xs' : 's';
   const defaultBannerSrc = defaultBannerArtSrc(size);
   const resolvedImage: ReactNode | null =
@@ -111,6 +115,7 @@ export function Banner({
     : isL
       ? `calc(${euiTheme.size.base} * 7.5)`
       : euiTheme.size.xxxxl;
+  /** `s`: `m` (~12px); `m`: `base`; `l`: `l`. */
   const imageLeadGap = isS ? euiTheme.size.m : isL ? euiTheme.size.l : euiTheme.size.base;
 
   const sLeadWrapCss = css`
@@ -127,6 +132,7 @@ export function Banner({
       display: inline;
     }
     margin-block: 0;
+    margin-inline-start: 2px;
     vertical-align: baseline;
   `;
 
@@ -136,14 +142,14 @@ export function Banner({
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    border-top-left-radius: ${leftCorner};
-    border-bottom-left-radius: ${leftCorner};
-    border-top-right-radius: ${corner};
-    border-bottom-right-radius: ${corner};
+    border-top-left-radius: ${specimenBorderRadius};
+    border-bottom-left-radius: ${specimenBorderRadius};
+    border-top-right-radius: ${specimenBorderRadius};
+    border-bottom-right-radius: ${specimenBorderRadius};
     overflow: hidden;
     background-color: ${bg};
     border: ${thin} solid ${edge};
-    padding: ${rootPaddingInline};
+    padding: ${rootPadding};
     word-break: break-word;
   `;
 
@@ -162,7 +168,7 @@ export function Banner({
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-radius: ${euiTheme.border.radius.small};
+    border-radius: ${specimenBorderRadius};
 
     img,
     svg {
@@ -181,7 +187,7 @@ export function Banner({
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: 0;
+        gap: ${titleBodyGap};
 
         h3,
         h4 {
@@ -193,10 +199,8 @@ export function Banner({
           padding-block: 0;
         }
 
-        /* Exact title↔body offset; flex gap stacks with EuiText / paragraph margins in practice. */
         .euiTitle + .euiText {
           margin-block: 0;
-          margin-top: ${titleBodyGap};
         }
 
         .euiTitle + .euiText p {
@@ -205,7 +209,7 @@ export function Banner({
       `;
 
   const leadBlock = (
-    <div css={leadColumnCss}>
+    <div data-slot={notificationSlots.textBox} css={leadColumnCss}>
       {isS ? (
         <div css={sLeadWrapCss}>
           <EuiTitle size="xxs">
@@ -215,12 +219,9 @@ export function Banner({
             </h5>
           </EuiTitle>
           {children != null ? (
-            <>
-              {' '}
-              <EuiText size="s" component="span" color="subdued" css={sLeadBodyCss}>
-                {children}
-              </EuiText>
-            </>
+            <EuiText size="s" component="span" color="subdued" css={sLeadBodyCss}>
+              {children}
+            </EuiText>
           ) : null}
         </div>
       ) : (
@@ -239,10 +240,10 @@ export function Banner({
   );
 
   const actionsRow = (
-    <span
+    <div
+      data-slot={notificationSlots.buttonBox}
       css={css`
         align-self: flex-start;
-        display: inline-block;
         max-width: 100%;
       `}
     >
@@ -287,11 +288,12 @@ export function Banner({
           </span>
         </EuiFlexItem>
       </EuiFlexGroup>
-    </span>
+    </div>
   );
 
   return (
     <div
+      data-slot={notificationSlots.root}
       className={className}
       css={rootCss}
       role="status"
@@ -315,10 +317,6 @@ export function Banner({
         css={css`
           position: relative;
           z-index: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: stretch;
-          gap: ${leadToActionsGap};
           padding-block: ${contentPaddingBlock};
         `}
       >
@@ -332,8 +330,11 @@ export function Banner({
               min-width: 0;
             `}
           >
-            <div css={imageSlotCss}>{resolvedImage}</div>
+            <div data-slot={notificationSlots.imageBox} css={imageSlotCss}>
+              {resolvedImage}
+            </div>
             <div
+              data-slot={notificationSlots.contentBox}
               css={css`
                 display: flex;
                 flex-direction: column;
@@ -347,15 +348,41 @@ export function Banner({
                 padding-block: ${copyStackPaddingBlock};
               `}
             >
-              {leadBlock}
+              <div
+                data-slot={notificationSlots.textWrapper}
+                css={css`
+                  min-width: 0;
+                  max-width: 100%;
+                  width: 100%;
+                `}
+              >
+                {leadBlock}
+              </div>
               {actionsRow}
             </div>
           </div>
         ) : (
-          <>
-            {leadBlock}
+          <div
+            data-slot={notificationSlots.contentBox}
+            css={css`
+              display: flex;
+              flex-direction: column;
+              align-items: stretch;
+              gap: ${leadToActionsGap};
+              padding-block: ${copyStackPaddingBlock};
+            `}
+          >
+            <div
+              data-slot={notificationSlots.textWrapper}
+              css={css`
+                min-width: 0;
+                max-width: 100%;
+              `}
+            >
+              {leadBlock}
+            </div>
             {actionsRow}
-          </>
+          </div>
         )}
       </div>
     </div>

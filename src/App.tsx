@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import {
+  EuiButtonGroup,
   EuiFlexGroup,
   EuiFlexItem,
   EuiPanel,
@@ -16,31 +17,43 @@ import { Toast } from './components/Toast';
 
 type TopicTab = 'toasts' | 'callouts' | 'banners';
 
-function BannerSizeSection({
-  size,
-  title,
-  children,
-}: {
-  size: BannerSize;
-  title: string;
-  children: ReactNode;
-}) {
+export type AppColorMode = 'LIGHT' | 'DARK';
+
+/** Label above each specimen row, aligned with callouts (`Size M`, `Size S`, …). */
+function specimenSizeLabel(size: BannerSize): string {
+  return `Size ${size.toUpperCase()}`;
+}
+
+/** Title inside each `Banner`, distinct from the specimen row label. */
+function bannerTitleText(size: BannerSize): string {
+  switch (size) {
+    case 'l':
+      return 'Large banner';
+    case 'm':
+      return 'Medium banner';
+    case 's':
+      return 'Small banner';
+  }
+}
+
+function BannerSizeSection({ size, children }: { size: BannerSize; children: ReactNode }) {
+  const bannerTitle = bannerTitleText(size);
   return (
     <>
       <EuiFlexItem grow={false}>
         <EuiText size="s">
           <p>
-            <strong>Size {size.toUpperCase()}</strong>
+            <strong>{specimenSizeLabel(size)}</strong>
           </p>
         </EuiText>
       </EuiFlexItem>
       <EuiFlexItem grow={false}>
-        <Banner size={size} title={title}>
+        <Banner size={size} title={bannerTitle}>
           {children}
         </Banner>
       </EuiFlexItem>
       <EuiFlexItem grow={false}>
-        <Banner size={size} image={null} title={title}>
+        <Banner size={size} image={null} title={bannerTitle}>
           {children}
         </Banner>
       </EuiFlexItem>
@@ -162,20 +175,27 @@ function TopicPanel({ topic }: { topic: TopicTab }) {
           alignItems="stretch"
           css={{ maxWidth: '100%' }}
         >
-          <BannerSizeSection size="l" title="Account notice">
-            Extra padding for emphasis when the message should feel more substantial than size M.
+          <BannerSizeSection size="l">
+            Extra padding and larger type give this layout more presence when the story is important
+            or a bit longer than a medium banner comfortably fits. Use it for account-level notices,
+            policy updates, or guided setup where the illustration and headline should read as a
+            single, confident block.
           </BannerSizeSection>
           <EuiFlexItem grow={false}>
             <EuiSpacer size="l" />
           </EuiFlexItem>
-          <BannerSizeSection size="m" title="Scheduled maintenance">
-            We will deploy updates on Tuesday 02:00–04:00 UTC. Brief interruptions are possible.
+          <BannerSizeSection size="m">
+            We will deploy updates on Tuesday 02:00–04:00 UTC. Brief interruptions are possible while
+            nodes restart. If you see errors, wait a few minutes and refresh; status updates will
+            appear on the platform status page once work completes.
           </BannerSizeSection>
           <EuiFlexItem grow={false}>
             <EuiSpacer size="l" />
           </EuiFlexItem>
-          <BannerSizeSection size="s" title="New feature available">
-            Inline title and body for tight headers—same actions as larger sizes.
+          <BannerSizeSection size="s">
+            Inline title and body suit dense headers and toolbars: you keep primary and secondary
+            actions without sacrificing hierarchy. Keep sentences short so the smaller type stays
+            readable at a glance.
           </BannerSizeSection>
         </EuiFlexGroup>
       );
@@ -184,7 +204,12 @@ function TopicPanel({ topic }: { topic: TopicTab }) {
   }
 }
 
-export function App() {
+type AppProps = {
+  colorMode: AppColorMode;
+  onColorModeChange: (mode: AppColorMode) => void;
+};
+
+export function App({ colorMode, onColorModeChange }: AppProps) {
   const { euiTheme } = useEuiTheme();
   const [selectedTab, setSelectedTab] = useState<TopicTab>('toasts');
 
@@ -223,6 +248,7 @@ export function App() {
           css={{
             ...constrained,
             paddingTop: euiTheme.size.m,
+            paddingBottom: euiTheme.size.m,
           }}
         >
           <EuiTabs expand bottomBorder size="l" aria-label="Specimen topics">
@@ -251,6 +277,19 @@ export function App() {
               Banners
             </EuiTab>
           </EuiTabs>
+          <EuiSpacer size="s" />
+          <EuiButtonGroup
+            legend="Color mode"
+            type="single"
+            buttonSize="s"
+            color="text"
+            idSelected={colorMode === 'LIGHT' ? 'light' : 'dark'}
+            onChange={(id) => onColorModeChange(id === 'light' ? 'LIGHT' : 'DARK')}
+            options={[
+              { id: 'light', label: 'Light' },
+              { id: 'dark', label: 'Dark' },
+            ]}
+          />
         </div>
       </header>
 

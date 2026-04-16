@@ -12,6 +12,8 @@ import {
 } from '@elastic/eui';
 import type { ReactNode } from 'react';
 
+import { notificationSlots } from './notificationSlots';
+
 export type ToastColor = 'success' | 'warning' | 'danger' | 'neutral';
 
 export type ToastProps = {
@@ -58,7 +60,7 @@ function buttonColor(color: ToastColor): 'primary' | 'success' | 'warning' | 'da
 
 /**
  * Toast card aligned to Figma node 6150:6490 (Banners–toasts–callouts):
- * 3px left stripe (`::after`, TL/BL radius 1px), 40px end padding for dismiss, large shadow,
+ * 3px left stripe (`::after`, TL/BL radius 2px), 40px end padding for dismiss, large shadow,
  * Primary CTA uses base `EuiButton` (`fill={false}` / secondary prominence) + semantic `color`;
  * second action is `EuiButtonEmpty` (matches EUI guidance for action hierarchy).
  */
@@ -78,18 +80,17 @@ export function Toast({
   const leftAccent = leftAccentColor(euiTheme, color);
   const btnColor = buttonColor(color);
   const leftStripe = '3px';
-  const corner = euiTheme.size.xxs;
-  const leftCorner = '1px';
+  const specimenBorderRadius = '2px';
 
   const rootCss = css`
     position: relative;
     box-sizing: border-box;
     width: 320px;
     max-width: 100%;
-    border-top-left-radius: ${leftCorner};
-    border-bottom-left-radius: ${leftCorner};
-    border-top-right-radius: ${corner};
-    border-bottom-right-radius: ${corner};
+    border-top-left-radius: ${specimenBorderRadius};
+    border-bottom-left-radius: ${specimenBorderRadius};
+    border-top-right-radius: ${specimenBorderRadius};
+    border-bottom-right-radius: ${specimenBorderRadius};
     background-color: ${euiTheme.colors.emptyShade};
     border: none;
     padding: ${euiTheme.size.base} 40px ${euiTheme.size.base} ${euiTheme.size.l};
@@ -105,8 +106,8 @@ export function Toast({
       bottom: 0;
       width: ${leftStripe};
       background-color: ${leftAccent};
-      border-top-left-radius: ${leftCorner};
-      border-bottom-left-radius: ${leftCorner};
+      border-top-left-radius: ${specimenBorderRadius};
+      border-bottom-left-radius: ${specimenBorderRadius};
       pointer-events: none;
     }
   `;
@@ -122,6 +123,7 @@ export function Toast({
 
   return (
     <div
+      data-slot={notificationSlots.root}
       className={className}
       css={rootCss}
       role="status"
@@ -140,6 +142,7 @@ export function Toast({
       </span>
 
       <div
+        data-slot={notificationSlots.contentBox}
         css={css`
           position: relative;
           z-index: 1;
@@ -150,23 +153,32 @@ export function Toast({
         `}
       >
         <div
+          data-slot={notificationSlots.textWrapper}
           css={css`
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: ${euiTheme.size.xs};
+            min-width: 0;
+            max-width: 100%;
           `}
         >
-          <EuiTitle size="xs">
-            <h4>{title}</h4>
-          </EuiTitle>
-          {children ? <EuiText size="s">{children}</EuiText> : null}
+          <div
+            data-slot={notificationSlots.textBox}
+            css={css`
+              display: flex;
+              flex-direction: column;
+              align-items: stretch;
+              gap: ${euiTheme.size.xs};
+            `}
+          >
+            <EuiTitle size="xs">
+              <h4>{title}</h4>
+            </EuiTitle>
+            {children ? <EuiText size="s">{children}</EuiText> : null}
+          </div>
         </div>
 
-        <span
+        <div
+          data-slot={notificationSlots.buttonBox}
           css={css`
             align-self: flex-start;
-            display: inline-block;
             max-width: 100%;
           `}
         >
@@ -211,7 +223,7 @@ export function Toast({
               </span>
             </EuiFlexItem>
           </EuiFlexGroup>
-        </span>
+        </div>
       </div>
     </div>
   );
