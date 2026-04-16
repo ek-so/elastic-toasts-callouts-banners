@@ -1,9 +1,10 @@
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   EuiButtonGroup,
   EuiFieldNumber,
   EuiFlexGroup,
   EuiFlexItem,
+  EuiFormRow,
   EuiIcon,
   EuiPanel,
   EuiScreenReaderOnly,
@@ -12,6 +13,7 @@ import {
   EuiTab,
   EuiTabs,
   EuiText,
+  EuiTextArea,
   EuiToolTip,
   useEuiTheme,
 } from '@elastic/eui';
@@ -25,6 +27,26 @@ type TopicTab = 'toasts' | 'callouts' | 'banners';
 /** Banners tab only: panel fill vs banner shell fill for subdued specimen context. */
 type BannersPanelMode = 'plain' | 'subdued';
 
+type SpecimenCopy = { title: string; description: string };
+
+const INITIAL_SPECIMEN_COPY: Record<TopicTab, SpecimenCopy> = {
+  toasts: {
+    title: 'Toast title',
+    description:
+      'Shared toast body across neutral, success, warning, and danger—compare shadow, stripe, and actions in the stack.',
+  },
+  callouts: {
+    title: 'Callout title',
+    description:
+      'Shared callout body for size M and S in every color—check stripe, borders, and wide layout at the breakpoint.',
+  },
+  banners: {
+    title: 'Banner title',
+    description:
+      'Shared banner body for large, medium, and small (with and without art)—tune length for inline vs stacked lead.',
+  },
+};
+
 export type AppColorMode = 'LIGHT' | 'DARK';
 
 export type AppContentWidth = 'narrow' | 'wide';
@@ -37,32 +59,21 @@ function specimenSizeLabel(size: BannerSize): string {
   return `Size ${size.toUpperCase()}`;
 }
 
-/** Title inside each `Banner`, distinct from the specimen row label. */
-function bannerTitleText(size: BannerSize): string {
-  switch (size) {
-    case 'l':
-      return 'Large banner';
-    case 'm':
-      return 'Medium banner';
-    case 's':
-      return 'Small banner';
-  }
-}
-
 function BannerSizeSection({
   size,
-  children,
   layoutBreakpointPx,
   hideDescription,
   onSubduedSpecimenPanel,
+  specimenDescription,
+  specimenTitle,
 }: {
   size: BannerSize;
-  children: ReactNode;
   layoutBreakpointPx: number;
   hideDescription: boolean;
   onSubduedSpecimenPanel: boolean;
+  specimenDescription: string;
+  specimenTitle: string;
 }) {
-  const bannerTitle = bannerTitleText(size);
   return (
     <>
       <EuiFlexItem grow={false}>
@@ -78,9 +89,9 @@ function BannerSizeSection({
           layoutBreakpointPx={layoutBreakpointPx}
           onSubduedSpecimenPanel={onSubduedSpecimenPanel}
           size={size}
-          title={bannerTitle}
+          title={specimenTitle}
         >
-          {children}
+          {specimenDescription}
         </Banner>
       </EuiFlexItem>
       <EuiFlexItem grow={false}>
@@ -90,9 +101,9 @@ function BannerSizeSection({
           onSubduedSpecimenPanel={onSubduedSpecimenPanel}
           size={size}
           image={null}
-          title={bannerTitle}
+          title={specimenTitle}
         >
-          {children}
+          {specimenDescription}
         </Banner>
       </EuiFlexItem>
     </>
@@ -104,12 +115,16 @@ function TopicPanel({
   layoutBreakpointPx,
   hideDescription,
   bannersPanelMode,
+  specimenDescription,
+  specimenTitle,
 }: {
   topic: TopicTab;
   layoutBreakpointPx: number;
   hideDescription: boolean;
-  /** Used when `topic === 'banners'`; `plain` keeps default panel + highlighted banners. */
+  /** Used when `topic === 'banners'`; `plain` keeps default panel + subdued banner shells. */
   bannersPanelMode: BannersPanelMode;
+  specimenDescription: string;
+  specimenTitle: string;
 }) {
   switch (topic) {
     case 'toasts':
@@ -121,26 +136,23 @@ function TopicPanel({
           css={{ maxWidth: '100%' }}
         >
           <EuiFlexItem grow={false}>
-            <Toast hideDescription={hideDescription} color="neutral" title="Neutral toast">
-              Life is a canvas, and you are the artist. Paint your dreams with vibrant colors
-              and bold strokes.
+            <Toast hideDescription={hideDescription} color="neutral" title={specimenTitle}>
+              {specimenDescription}
             </Toast>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Toast hideDescription={hideDescription} color="success" title="Success toast">
-              Adventure awaits around every corner, inviting you to explore the unknown. Take a
-              leap of faith and let curiosity guide you.
+            <Toast hideDescription={hideDescription} color="success" title={specimenTitle}>
+              {specimenDescription}
             </Toast>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Toast hideDescription={hideDescription} color="warning" title="Warning toast">
-              The sun rises on a new day, bringing fresh opportunities and endless potential.
+            <Toast hideDescription={hideDescription} color="warning" title={specimenTitle}>
+              {specimenDescription}
             </Toast>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Toast hideDescription={hideDescription} color="danger" title="Danger toast">
-              In a world of endless possibilities, creativity knows no bounds. Embrace the journey
-              of discovery and let your imagination soar.
+            <Toast hideDescription={hideDescription} color="danger" title={specimenTitle}>
+              {specimenDescription}
             </Toast>
           </EuiFlexItem>
         </EuiFlexGroup>
@@ -161,26 +173,47 @@ function TopicPanel({
             </EuiText>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Callout layoutBreakpointPx={layoutBreakpointPx} hideDescription={hideDescription} size="m" color="neutral" title="Neutral callout">
-              Life is a canvas, and you are the artist. Paint your dreams with vibrant colors and
-              bold strokes.
+            <Callout
+              hideDescription={hideDescription}
+              layoutBreakpointPx={layoutBreakpointPx}
+              size="m"
+              color="neutral"
+              title={specimenTitle}
+            >
+              {specimenDescription}
             </Callout>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Callout layoutBreakpointPx={layoutBreakpointPx} hideDescription={hideDescription} size="m" color="success" title="Success callout">
-              Adventure awaits around every corner, inviting you to explore the unknown. Take a leap
-              of faith and let curiosity guide you.
+            <Callout
+              hideDescription={hideDescription}
+              layoutBreakpointPx={layoutBreakpointPx}
+              size="m"
+              color="success"
+              title={specimenTitle}
+            >
+              {specimenDescription}
             </Callout>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Callout layoutBreakpointPx={layoutBreakpointPx} hideDescription={hideDescription} size="m" color="warning" title="Warning callout">
-              The sun rises on a new day, bringing fresh opportunities and endless potential.
+            <Callout
+              hideDescription={hideDescription}
+              layoutBreakpointPx={layoutBreakpointPx}
+              size="m"
+              color="warning"
+              title={specimenTitle}
+            >
+              {specimenDescription}
             </Callout>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Callout layoutBreakpointPx={layoutBreakpointPx} hideDescription={hideDescription} size="m" color="danger" title="Danger callout">
-              In a world of endless possibilities, creativity knows no bounds. Embrace the journey
-              of discovery and let your imagination soar.
+            <Callout
+              hideDescription={hideDescription}
+              layoutBreakpointPx={layoutBreakpointPx}
+              size="m"
+              color="danger"
+              title={specimenTitle}
+            >
+              {specimenDescription}
             </Callout>
           </EuiFlexItem>
 
@@ -195,23 +228,47 @@ function TopicPanel({
             </EuiText>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Callout layoutBreakpointPx={layoutBreakpointPx} hideDescription={hideDescription} size="s" color="neutral" title="Neutral callout">
-              Shorter copy for compact callouts. Adjust padding and type scale for dense layouts.
+            <Callout
+              hideDescription={hideDescription}
+              layoutBreakpointPx={layoutBreakpointPx}
+              size="s"
+              color="neutral"
+              title={specimenTitle}
+            >
+              {specimenDescription}
             </Callout>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Callout layoutBreakpointPx={layoutBreakpointPx} hideDescription={hideDescription} size="s" color="success" title="Success callout">
-              Keep body text brief so the smaller type stays readable at a glance.
+            <Callout
+              hideDescription={hideDescription}
+              layoutBreakpointPx={layoutBreakpointPx}
+              size="s"
+              color="success"
+              title={specimenTitle}
+            >
+              {specimenDescription}
             </Callout>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Callout layoutBreakpointPx={layoutBreakpointPx} hideDescription={hideDescription} size="s" color="warning" title="Warning callout">
-              Tighter padding and smaller title and body type keep the footprint small.
+            <Callout
+              hideDescription={hideDescription}
+              layoutBreakpointPx={layoutBreakpointPx}
+              size="s"
+              color="warning"
+              title={specimenTitle}
+            >
+              {specimenDescription}
             </Callout>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <Callout layoutBreakpointPx={layoutBreakpointPx} hideDescription={hideDescription} size="s" color="danger" title="Danger callout">
-              Same structure as size M: stripe, borders, and actions—just a denser layout.
+            <Callout
+              hideDescription={hideDescription}
+              layoutBreakpointPx={layoutBreakpointPx}
+              size="s"
+              color="danger"
+              title={specimenTitle}
+            >
+              {specimenDescription}
             </Callout>
           </EuiFlexItem>
         </EuiFlexGroup>
@@ -228,13 +285,10 @@ function TopicPanel({
             hideDescription={hideDescription}
             layoutBreakpointPx={layoutBreakpointPx}
             onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
+            specimenDescription={specimenDescription}
+            specimenTitle={specimenTitle}
             size="l"
-          >
-            Extra padding and larger type give this layout more presence when the story is important
-            or a bit longer than a medium banner comfortably fits. Use it for account-level notices,
-            policy updates, or guided setup where the illustration and headline should read as a
-            single, confident block.
-          </BannerSizeSection>
+          />
           <EuiFlexItem grow={false}>
             <EuiSpacer size="l" />
           </EuiFlexItem>
@@ -242,12 +296,10 @@ function TopicPanel({
             hideDescription={hideDescription}
             layoutBreakpointPx={layoutBreakpointPx}
             onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
+            specimenDescription={specimenDescription}
+            specimenTitle={specimenTitle}
             size="m"
-          >
-            We will deploy updates on Tuesday 02:00–04:00 UTC. Brief interruptions are possible while
-            nodes restart. If you see errors, wait a few minutes and refresh; status updates will
-            appear on the platform status page once work completes.
-          </BannerSizeSection>
+          />
           <EuiFlexItem grow={false}>
             <EuiSpacer size="l" />
           </EuiFlexItem>
@@ -255,12 +307,10 @@ function TopicPanel({
             hideDescription={hideDescription}
             layoutBreakpointPx={layoutBreakpointPx}
             onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
+            specimenDescription={specimenDescription}
+            specimenTitle={specimenTitle}
             size="s"
-          >
-            Inline title and body suit dense headers and toolbars: you keep primary and secondary
-            actions without sacrificing hierarchy. Keep sentences short so the smaller type stays
-            readable at a glance.
-          </BannerSizeSection>
+          />
         </EuiFlexGroup>
       );
     default:
@@ -286,6 +336,11 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   const [narrowMaxWidthDraft, setNarrowMaxWidthDraft] = useState(
     String(DEFAULT_NARROW_MAX_WIDTH_PX)
   );
+  const [specimenCopy, setSpecimenCopy] = useState<Record<TopicTab, SpecimenCopy>>(() => ({
+    toasts: { ...INITIAL_SPECIMEN_COPY.toasts },
+    callouts: { ...INITIAL_SPECIMEN_COPY.callouts },
+    banners: { ...INITIAL_SPECIMEN_COPY.banners },
+  }));
 
   const commitNarrowMaxWidth = () => {
     const parsed = Number.parseInt(narrowMaxWidthDraft, 10);
@@ -506,25 +561,6 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 />
               )}
             </EuiFlexItem>
-            <EuiFlexItem
-              grow={false}
-              css={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                blockSize: euiTheme.size.xl,
-                minBlockSize: euiTheme.size.xl,
-                paddingInline: euiTheme.size.s,
-              }}
-            >
-              <EuiSwitch
-                label="Hide description"
-                checked={hideDescription}
-                css={{ alignItems: 'center' }}
-                onChange={(e) => setHideDescription(e.target.checked)}
-              />
-            </EuiFlexItem>
             {selectedTab === 'banners' ? (
               <EuiFlexItem grow={false}>
                 <EuiButtonGroup
@@ -542,6 +578,48 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
               </EuiFlexItem>
             ) : null}
           </EuiFlexGroup>
+          <EuiSpacer size="m" />
+          <EuiFormRow fullWidth label="Title">
+            <EuiTextArea
+              fullWidth
+              compressed
+              rows={2}
+              css={{ minBlockSize: `calc(${euiTheme.size.base} * 3.75)` }}
+              value={specimenCopy[selectedTab].title}
+              onChange={(e) =>
+                setSpecimenCopy((prev) => ({
+                  ...prev,
+                  [selectedTab]: { ...prev[selectedTab], title: e.target.value },
+                }))
+              }
+            />
+          </EuiFormRow>
+          <EuiSpacer size="m" />
+          <EuiSwitch
+            label="Hide description"
+            checked={hideDescription}
+            onChange={(e) => setHideDescription(e.target.checked)}
+          />
+          {!hideDescription ? (
+            <>
+              <EuiSpacer size="m" />
+              <EuiFormRow fullWidth label="Description">
+                <EuiTextArea
+                  fullWidth
+                  compressed
+                  rows={2}
+                  css={{ minBlockSize: `calc(${euiTheme.size.base} * 3.75)` }}
+                  value={specimenCopy[selectedTab].description}
+                  onChange={(e) =>
+                    setSpecimenCopy((prev) => ({
+                      ...prev,
+                      [selectedTab]: { ...prev[selectedTab], description: e.target.value },
+                    }))
+                  }
+                />
+              </EuiFormRow>
+            </>
+          ) : null}
         </div>
       </header>
 
@@ -577,6 +655,8 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
               bannersPanelMode={bannersPanelMode}
               hideDescription={hideDescription}
               layoutBreakpointPx={narrowMaxWidthPx}
+              specimenDescription={specimenCopy[selectedTab].description}
+              specimenTitle={specimenCopy[selectedTab].title}
               topic={selectedTab}
             />
           </EuiPanel>
