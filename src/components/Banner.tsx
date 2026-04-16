@@ -198,8 +198,8 @@ export function Banner({
       : useScreenshotArt && isL
         ? euiTheme.size.xl
         : imageLeadGap;
-  /** Cap lead copy width (62.5 × theme base ≈ 1000px at default scale). */
-  const textBoxMaxWidth = `${euiTheme.base * 62.5}px`;
+  /** Cap lead copy width (75 × theme base ≈ 1200px at default scale). */
+  const textBoxMaxWidth = `${euiTheme.base * 75}px`;
 
   const sLeadWrapCss = css`
     min-width: 0;
