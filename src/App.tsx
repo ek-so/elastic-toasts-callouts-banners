@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   EuiButtonGroup,
+  EuiFieldNumber,
   EuiFlexGroup,
   EuiFlexItem,
   EuiPanel,
@@ -18,6 +19,12 @@ import { Toast } from './components/Toast';
 type TopicTab = 'toasts' | 'callouts' | 'banners';
 
 export type AppColorMode = 'LIGHT' | 'DARK';
+
+export type AppContentWidth = 'narrow' | 'wide';
+
+const DEFAULT_NARROW_MAX_WIDTH_PX = 1000;
+const MIN_NARROW_MAX_WIDTH_PX = 280;
+const MAX_NARROW_MAX_WIDTH_PX = 4096;
 
 /** Label above each specimen row, aligned with callouts (`Size M`, `Size S`, …). */
 function specimenSizeLabel(size: BannerSize): string {
@@ -211,16 +218,57 @@ type AppProps = {
 
 export function App({ colorMode, onColorModeChange }: AppProps) {
   const { euiTheme } = useEuiTheme();
-  const [selectedTab, setSelectedTab] = useState<TopicTab>('toasts');
+  const [selectedTab, setSelectedTab] = useState<TopicTab>('callouts');
+  const [contentWidth, setContentWidth] = useState<AppContentWidth>('narrow');
+  const [narrowMaxWidthPx, setNarrowMaxWidthPx] = useState(DEFAULT_NARROW_MAX_WIDTH_PX);
+  const [narrowMaxWidthDraft, setNarrowMaxWidthDraft] = useState(
+    String(DEFAULT_NARROW_MAX_WIDTH_PX)
+  );
 
-  const constrained = {
-    maxWidth: 960,
-    margin: '0 auto' as const,
-    width: '100%',
-    boxSizing: 'border-box' as const,
-    paddingLeft: euiTheme.size.l,
-    paddingRight: euiTheme.size.l,
+  const commitNarrowMaxWidth = () => {
+    const parsed = Number.parseInt(narrowMaxWidthDraft, 10);
+    if (Number.isNaN(parsed)) {
+      setNarrowMaxWidthDraft(String(narrowMaxWidthPx));
+      return;
+    }
+    const clamped = Math.min(
+      MAX_NARROW_MAX_WIDTH_PX,
+      Math.max(MIN_NARROW_MAX_WIDTH_PX, parsed)
+    );
+    setNarrowMaxWidthPx(clamped);
+    setNarrowMaxWidthDraft(String(clamped));
   };
+
+  useEffect(() => {
+    const query = `(max-width: ${narrowMaxWidthPx - 1}px)`;
+    const mq = window.matchMedia(query);
+    const apply = () => {
+      if (mq.matches) {
+        setContentWidth('narrow');
+      }
+    };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, [narrowMaxWidthPx]);
+
+  const pageFrame =
+    contentWidth === 'narrow'
+      ? {
+          width: '100%',
+          maxWidth: `${narrowMaxWidthPx}px`,
+          margin: '0 auto' as const,
+          boxSizing: 'border-box' as const,
+          paddingLeft: euiTheme.size.l,
+          paddingRight: euiTheme.size.l,
+        }
+      : {
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box' as const,
+          paddingLeft: euiTheme.size.l,
+          paddingRight: euiTheme.size.l,
+        };
 
   return (
     <div
@@ -246,20 +294,12 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
       >
         <div
           css={{
-            ...constrained,
+            ...pageFrame,
             paddingTop: euiTheme.size.m,
             paddingBottom: euiTheme.size.m,
           }}
         >
           <EuiTabs expand bottomBorder size="l" aria-label="Specimen topics">
-            <EuiTab
-              id="toasts-tab"
-              aria-controls="topic-panel"
-              isSelected={selectedTab === 'toasts'}
-              onClick={() => setSelectedTab('toasts')}
-            >
-              Toasts
-            </EuiTab>
             <EuiTab
               id="callouts-tab"
               aria-controls="topic-panel"
@@ -276,20 +316,70 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
             >
               Banners
             </EuiTab>
+            <EuiTab
+              id="toasts-tab"
+              aria-controls="topic-panel"
+              isSelected={selectedTab === 'toasts'}
+              onClick={() => setSelectedTab('toasts')}
+            >
+              Toasts
+            </EuiTab>
           </EuiTabs>
           <EuiSpacer size="m" />
-          <EuiButtonGroup
-            legend="Color mode"
-            type="single"
-            buttonSize="s"
-            color="text"
-            idSelected={colorMode === 'LIGHT' ? 'light' : 'dark'}
-            onChange={(id) => onColorModeChange(id === 'light' ? 'LIGHT' : 'DARK')}
-            options={[
-              { id: 'light', label: 'Light' },
-              { id: 'dark', label: 'Dark' },
-            ]}
-          />
+          <EuiFlexGroup
+            responsive={false}
+            direction="row"
+            gutterSize="s"
+            alignItems="center"
+            wrap
+          >
+            <EuiFlexItem grow={false}>
+              <EuiButtonGroup
+                legend="Color mode"
+                type="single"
+                buttonSize="s"
+                color="text"
+                idSelected={colorMode === 'LIGHT' ? 'light' : 'dark'}
+                onChange={(id) => onColorModeChange(id === 'light' ? 'LIGHT' : 'DARK')}
+                options={[
+                  { id: 'light', label: 'Light' },
+                  { id: 'dark', label: 'Dark' },
+                ]}
+              />
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <EuiButtonGroup
+                legend="Content width"
+                type="single"
+                buttonSize="s"
+                color="text"
+                idSelected={contentWidth === 'narrow' ? 'narrow' : 'wide'}
+                onChange={(id) => setContentWidth(id === 'narrow' ? 'narrow' : 'wide')}
+                options={[
+                  { id: 'narrow', label: 'Narrow' },
+                  { id: 'wide', label: 'Wide' },
+                ]}
+              />
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <EuiFieldNumber
+                compressed
+                min={MIN_NARROW_MAX_WIDTH_PX}
+                max={MAX_NARROW_MAX_WIDTH_PX}
+                value={narrowMaxWidthDraft}
+                onChange={(e) => setNarrowMaxWidthDraft(e.target.value)}
+                onBlur={commitNarrowMaxWidth}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+                placeholder="Layout breakpoint"
+                aria-label="Layout breakpoint: narrow column max width in pixels; viewport below this width forces narrow mode"
+                css={{ minWidth: euiTheme.size.xxxxl }}
+              />
+            </EuiFlexItem>
+          </EuiFlexGroup>
         </div>
       </header>
 
@@ -305,7 +395,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
       >
         <div
           css={{
-            ...constrained,
+            ...pageFrame,
             paddingBottom: euiTheme.size.l,
           }}
         >

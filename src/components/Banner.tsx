@@ -47,7 +47,8 @@ export type BannerProps = {
 
 /**
  * Full-width-style banner shell aligned to callout spacing and typography (no left stripe).
- * Sizes `m` / `s` match callout rhythm; `l` uses the same inner vertical padding as `m` and a wider horizontal inset on the shell. Default artwork per size is served from `public/banners/` (`/banners/*.svg`); override or hide with `image` / `image={null}`. Slot 32×32 / 64×64 / 120×120; image-to-copy gap `m` (`s`) / `base` (`m`) / `l` (`l`). Highlighted surface, subdued border; body subdued; dismiss `text`.
+ * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. Default artwork per size is served from `public/banners/` (`/banners/*.svg`); override or hide with `image` / `image={null}`. Slot 32×32 / 64×64 / 120×120; image-to-copy gap `m` (`s`) / `base` (`m`) / `l` (`l`). Highlighted surface, subdued border; body subdued; dismiss `text`.
+ * At container width ≥1400px on the root, `notification-content-box` lays out lead and actions in a row (`size.l` gap), matching wide callouts.
  */
 export function Banner({
   title,
@@ -136,12 +137,30 @@ export function Banner({
     vertical-align: baseline;
   `;
 
+  /** Wide banner: lead + actions in one row inside `notification-content-box` (same threshold as callouts). */
+  const wideBannerMinWidth = '1400px';
+
+  const wideContentBoxRowCss = css`
+    @container banner (min-width: ${wideBannerMinWidth}) {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: ${euiTheme.size.l};
+
+      [data-slot='${notificationSlots.textWrapper}'] {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+  `;
+
   const rootCss = css`
     position: relative;
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    container-type: inline-size;
+    container-name: banner;
     border-top-left-radius: ${specimenBorderRadius};
     border-bottom-left-radius: ${specimenBorderRadius};
     border-top-right-radius: ${specimenBorderRadius};
@@ -245,6 +264,11 @@ export function Banner({
       css={css`
         align-self: flex-start;
         max-width: 100%;
+
+        @container banner (min-width: ${wideBannerMinWidth}) {
+          flex-shrink: 0;
+          align-self: center;
+        }
       `}
     >
       <EuiFlexGroup
@@ -346,6 +370,7 @@ export function Banner({
                 flex: 1;
                 min-width: 0;
                 padding-block: ${copyStackPaddingBlock};
+                ${wideContentBoxRowCss}
               `}
             >
               <div
@@ -370,6 +395,8 @@ export function Banner({
               align-items: stretch;
               gap: ${leadToActionsGap};
               padding-block: ${copyStackPaddingBlock};
+              min-width: 0;
+              ${wideContentBoxRowCss}
             `}
           >
             <div

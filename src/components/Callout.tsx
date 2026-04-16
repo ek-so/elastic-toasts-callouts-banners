@@ -96,6 +96,7 @@ function buttonColor(color: CalloutColor): 'primary' | 'success' | 'warning' | '
 /**
  * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius 2px).
  * `size="m"` — stacked title (`EuiTitle` `xs`) + body (`EuiText` `s`), `xs` gap between. `size="s"` — one wrapping lead line: `EuiTitle` `xxs` + full stop + `EuiText` `s` inline in the same block.
+ * At container width ≥1400px (`container-type: inline-size` on root), `notification-content-box` is a row: text wrapper grows, button box sits to the right with `size.l` gap.
  */
 export function Callout({
   title,
@@ -146,12 +147,17 @@ export function Callout({
     vertical-align: baseline;
   `;
 
+  /** Wide callout: lead + actions in one row (container query on root `inline-size`). */
+  const wideCalloutMinWidth = '1400px';
+
   const rootCss = css`
     position: relative;
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    container-type: inline-size;
+    container-name: callout;
     border-radius: ${specimenBorderRadius};
     overflow: hidden;
     background-color: ${bg};
@@ -214,6 +220,18 @@ export function Callout({
           flex-direction: column;
           align-items: stretch;
           gap: ${blockGap};
+          min-width: 0;
+
+          @container callout (min-width: ${wideCalloutMinWidth}) {
+            flex-direction: row;
+            align-items: flex-start;
+            gap: ${euiTheme.size.l};
+
+            [data-slot='${notificationSlots.textWrapper}'] {
+              flex: 1;
+              min-width: 0;
+            }
+          }
         `}
       >
         <div
@@ -272,6 +290,11 @@ export function Callout({
           css={css`
             align-self: flex-start;
             max-width: 100%;
+
+            @container callout (min-width: ${wideCalloutMinWidth}) {
+              flex-shrink: 0;
+              align-self: center;
+            }
           `}
         >
           <EuiFlexGroup
