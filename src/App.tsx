@@ -19,6 +19,9 @@ import { Toast } from './components/Toast';
 
 type TopicTab = 'toasts' | 'callouts' | 'banners';
 
+/** Banners tab only: panel fill vs banner shell fill for subdued specimen context. */
+type BannersPanelMode = 'plain' | 'subdued';
+
 export type AppColorMode = 'LIGHT' | 'DARK';
 
 export type AppContentWidth = 'narrow' | 'wide';
@@ -49,11 +52,13 @@ function BannerSizeSection({
   children,
   layoutBreakpointPx,
   hideDescription,
+  onSubduedSpecimenPanel,
 }: {
   size: BannerSize;
   children: ReactNode;
   layoutBreakpointPx: number;
   hideDescription: boolean;
+  onSubduedSpecimenPanel: boolean;
 }) {
   const bannerTitle = bannerTitleText(size);
   return (
@@ -69,6 +74,7 @@ function BannerSizeSection({
         <Banner
           hideDescription={hideDescription}
           layoutBreakpointPx={layoutBreakpointPx}
+          onSubduedSpecimenPanel={onSubduedSpecimenPanel}
           size={size}
           title={bannerTitle}
         >
@@ -79,6 +85,7 @@ function BannerSizeSection({
         <Banner
           hideDescription={hideDescription}
           layoutBreakpointPx={layoutBreakpointPx}
+          onSubduedSpecimenPanel={onSubduedSpecimenPanel}
           size={size}
           image={null}
           title={bannerTitle}
@@ -94,10 +101,13 @@ function TopicPanel({
   topic,
   layoutBreakpointPx,
   hideDescription,
+  bannersPanelMode,
 }: {
   topic: TopicTab;
   layoutBreakpointPx: number;
   hideDescription: boolean;
+  /** Used when `topic === 'banners'`; `plain` keeps default panel + highlighted banners. */
+  bannersPanelMode: BannersPanelMode;
 }) {
   switch (topic) {
     case 'toasts':
@@ -213,8 +223,9 @@ function TopicPanel({
           css={{ maxWidth: '100%' }}
         >
           <BannerSizeSection
-            layoutBreakpointPx={layoutBreakpointPx}
             hideDescription={hideDescription}
+            layoutBreakpointPx={layoutBreakpointPx}
+            onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
             size="l"
           >
             Extra padding and larger type give this layout more presence when the story is important
@@ -226,8 +237,9 @@ function TopicPanel({
             <EuiSpacer size="l" />
           </EuiFlexItem>
           <BannerSizeSection
-            layoutBreakpointPx={layoutBreakpointPx}
             hideDescription={hideDescription}
+            layoutBreakpointPx={layoutBreakpointPx}
+            onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
             size="m"
           >
             We will deploy updates on Tuesday 02:00–04:00 UTC. Brief interruptions are possible while
@@ -238,8 +250,9 @@ function TopicPanel({
             <EuiSpacer size="l" />
           </EuiFlexItem>
           <BannerSizeSection
-            layoutBreakpointPx={layoutBreakpointPx}
             hideDescription={hideDescription}
+            layoutBreakpointPx={layoutBreakpointPx}
+            onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
             size="s"
           >
             Inline title and body suit dense headers and toolbars: you keep primary and secondary
@@ -261,6 +274,7 @@ type AppProps = {
 export function App({ colorMode, onColorModeChange }: AppProps) {
   const { euiTheme } = useEuiTheme();
   const [hideDescription, setHideDescription] = useState(false);
+  const [bannersPanelMode, setBannersPanelMode] = useState<BannersPanelMode>('plain');
   const [selectedTab, setSelectedTab] = useState<TopicTab>('callouts');
   const [contentWidth, setContentWidth] = useState<AppContentWidth>('narrow');
   const [narrowMaxWidthPx, setNarrowMaxWidthPx] = useState(DEFAULT_NARROW_MAX_WIDTH_PX);
@@ -419,17 +433,48 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 }}
                 placeholder="Layout breakpoint"
                 aria-label="Layout breakpoint: narrow column max width in pixels; viewport below this width forces narrow mode"
-                css={{ minWidth: euiTheme.size.xxxxl }}
+                css={{
+                  inlineSize: `calc(${euiTheme.size.base} * 7.5)`,
+                  maxInlineSize: `calc(${euiTheme.size.base} * 7.5)`,
+                  minInlineSize: 0,
+                }}
               />
             </EuiFlexItem>
+            <EuiFlexItem
+              grow={false}
+              css={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                blockSize: euiTheme.size.xl,
+                minBlockSize: euiTheme.size.xl,
+              }}
+            >
+              <EuiSwitch
+                label="Hide description"
+                checked={hideDescription}
+                css={{ alignItems: 'center' }}
+                onChange={(e) => setHideDescription(e.target.checked)}
+              />
+            </EuiFlexItem>
+            {selectedTab === 'banners' ? (
+              <EuiFlexItem grow={false}>
+                <EuiButtonGroup
+                  legend="Banner specimen panel"
+                  type="single"
+                  buttonSize="s"
+                  color="text"
+                  idSelected={bannersPanelMode}
+                  onChange={(id) => setBannersPanelMode(id as BannersPanelMode)}
+                  options={[
+                    { id: 'plain', label: 'Plain' },
+                    { id: 'subdued', label: 'Subdued' },
+                  ]}
+                />
+              </EuiFlexItem>
+            ) : null}
           </EuiFlexGroup>
-          <EuiSpacer size="xs" />
-          <EuiSwitch
-            compressed
-            label="Hide description"
-            checked={hideDescription}
-            onChange={(e) => setHideDescription(e.target.checked)}
-          />
         </div>
       </header>
 
@@ -451,10 +496,20 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
         >
           <EuiSpacer size="l" />
 
-          <EuiPanel paddingSize="l" hasBorder hasShadow={false}>
+          <EuiPanel
+            paddingSize="l"
+            hasBorder
+            hasShadow={false}
+            css={
+              selectedTab === 'banners' && bannersPanelMode === 'subdued'
+                ? { backgroundColor: euiTheme.colors.backgroundBaseSubdued }
+                : undefined
+            }
+          >
             <TopicPanel
-              layoutBreakpointPx={narrowMaxWidthPx}
+              bannersPanelMode={bannersPanelMode}
               hideDescription={hideDescription}
+              layoutBreakpointPx={narrowMaxWidthPx}
               topic={selectedTab}
             />
           </EuiPanel>

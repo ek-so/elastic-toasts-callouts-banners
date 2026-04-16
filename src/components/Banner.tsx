@@ -50,11 +50,16 @@ export type BannerProps = {
   layoutBreakpointPx?: number;
   /** When true, body copy (`children`) is omitted; title and actions stay. */
   hideDescription?: boolean;
+  /**
+   * When the specimen panel uses a subdued page background, use `backgroundBasePlain` on the
+   * banner shell instead of `backgroundBaseHighlighted` so the banner still reads on the panel.
+   */
+  onSubduedSpecimenPanel?: boolean;
 };
 
 /**
  * Full-width-style banner shell aligned to callout spacing and typography (no left stripe).
- * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. Default artwork per size is served from `public/banners/` (`/banners/*.svg`); override or hide with `image` / `image={null}`. Slot 32×32 / 64×64 / 120×120; image-to-copy gap `m` (`s`) / `base` (`m`) / `l` (`l`). Highlighted surface, subdued border; body subdued; dismiss `text`.
+ * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. Default artwork per size is served from `public/banners/` (`/banners/*.svg`); override or hide with `image` / `image={null}`. Slot 32×32 / 64×64 / 120×120; image-to-copy gap `m` (`s`) / `base` (`m`) / `l` (`l`). Default shell uses `backgroundBaseHighlighted` (or `backgroundBasePlain` when `onSubduedSpecimenPanel`); subdued border; body subdued; dismiss `text`.
  * At container width ≥`layoutBreakpointPx` on the root, `notification-content-box` lays out lead and actions in a row with vertical centering (`align-items: center`) and `size.l` gap, matching wide callouts.
  */
 export function Banner({
@@ -70,9 +75,12 @@ export function Banner({
   className,
   layoutBreakpointPx = 800,
   hideDescription = false,
+  onSubduedSpecimenPanel = false,
 }: BannerProps) {
   const { euiTheme } = useEuiTheme();
-  const bg = euiTheme.colors.backgroundBaseHighlighted;
+  const bg = onSubduedSpecimenPanel
+    ? euiTheme.colors.backgroundBasePlain
+    : euiTheme.colors.backgroundBaseHighlighted;
   const edge = euiTheme.colors.borderBaseSubdued;
   const btnColor = 'primary';
   const specimenBorderRadius = '2px';
