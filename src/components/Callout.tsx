@@ -150,8 +150,8 @@ export function Callout({
   const closeInsetInline = dismissFromEdge;
   const blockGap = isS ? '8px' : euiTheme.size.m;
   const actionsGutter = isS ? 'xs' : 's';
-  /** Cap copy width (75 × theme base ≈ 1200px at default scale). */
-  const textBoxMaxWidth = `${euiTheme.base * 75}px`;
+  /** Cap copy width (62.5 × theme base ≈ 1000px at default scale). */
+  const textBoxMaxWidth = `${euiTheme.base * 62.5}px`;
 
   /** Size `s`: inline `h5` + body so copy wraps together (heading stays `EuiTitle`, not `<strong>` in a `<p>`). */
   const sLeadWrapCss = css`
