@@ -43,12 +43,17 @@ export type BannerProps = {
   onSecondaryClick?: () => void;
   onDismiss?: () => void;
   className?: string;
+  /**
+   * Root `inline-size` (px) at which `notification-content-box` lays out lead and actions in a row.
+   * Specimens pass the app “Layout breakpoint” value.
+   */
+  layoutBreakpointPx?: number;
 };
 
 /**
  * Full-width-style banner shell aligned to callout spacing and typography (no left stripe).
  * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. Default artwork per size is served from `public/banners/` (`/banners/*.svg`); override or hide with `image` / `image={null}`. Slot 32×32 / 64×64 / 120×120; image-to-copy gap `m` (`s`) / `base` (`m`) / `l` (`l`). Highlighted surface, subdued border; body subdued; dismiss `text`.
- * At container width ≥1400px on the root, `notification-content-box` lays out lead and actions in a row (`size.l` gap), matching wide callouts.
+ * At container width ≥`layoutBreakpointPx` on the root, `notification-content-box` lays out lead and actions in a row (`size.l` gap), matching wide callouts.
  */
 export function Banner({
   title,
@@ -61,6 +66,7 @@ export function Banner({
   onSecondaryClick,
   onDismiss,
   className,
+  layoutBreakpointPx = 1000,
 }: BannerProps) {
   const { euiTheme } = useEuiTheme();
   const bg = euiTheme.colors.backgroundBaseHighlighted;
@@ -137,11 +143,10 @@ export function Banner({
     vertical-align: baseline;
   `;
 
-  /** Wide banner: lead + actions in one row inside `notification-content-box` (same threshold as callouts). */
-  const wideBannerMinWidth = '1400px';
+  const wideLeadActionsMinWidth = `${layoutBreakpointPx}px`;
 
   const wideContentBoxRowCss = css`
-    @container banner (min-width: ${wideBannerMinWidth}) {
+    @container banner (min-width: ${wideLeadActionsMinWidth}) {
       flex-direction: row;
       align-items: flex-start;
       gap: ${euiTheme.size.l};
@@ -265,7 +270,7 @@ export function Banner({
         align-self: flex-start;
         max-width: 100%;
 
-        @container banner (min-width: ${wideBannerMinWidth}) {
+        @container banner (min-width: ${wideLeadActionsMinWidth}) {
           flex-shrink: 0;
           align-self: center;
         }

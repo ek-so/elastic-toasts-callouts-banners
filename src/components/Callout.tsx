@@ -29,6 +29,11 @@ export type CalloutProps = {
   onSecondaryClick?: () => void;
   onDismiss?: () => void;
   className?: string;
+  /**
+   * Root `inline-size` (px) at which lead copy and actions become a horizontal row.
+   * Specimens pass the app “Layout breakpoint” value so it stays in sync with narrow column width.
+   */
+  layoutBreakpointPx?: number;
 };
 
 /** `neutral` uses primary base background / border tokens. */
@@ -96,7 +101,7 @@ function buttonColor(color: CalloutColor): 'primary' | 'success' | 'warning' | '
 /**
  * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius 2px).
  * `size="m"` — stacked title (`EuiTitle` `xs`) + body (`EuiText` `s`), `xs` gap between. `size="s"` — one wrapping lead line: `EuiTitle` `xxs` + full stop + `EuiText` `s` inline in the same block.
- * At container width ≥1400px (`container-type: inline-size` on root), `notification-content-box` is a row: text wrapper grows, button box sits to the right with `size.l` gap.
+ * At container width ≥`layoutBreakpointPx` (`container-type: inline-size` on root), `notification-content-box` is a row: text wrapper grows, button box sits to the right with `size.l` gap.
  */
 export function Callout({
   title,
@@ -109,6 +114,7 @@ export function Callout({
   onSecondaryClick,
   onDismiss,
   className,
+  layoutBreakpointPx = 1000,
 }: CalloutProps) {
   const { euiTheme } = useEuiTheme();
   const bg = calloutBackground(euiTheme, color);
@@ -147,8 +153,7 @@ export function Callout({
     vertical-align: baseline;
   `;
 
-  /** Wide callout: lead + actions in one row (container query on root `inline-size`). */
-  const wideCalloutMinWidth = '1400px';
+  const wideLeadActionsMinWidth = `${layoutBreakpointPx}px`;
 
   const rootCss = css`
     position: relative;
@@ -222,7 +227,7 @@ export function Callout({
           gap: ${blockGap};
           min-width: 0;
 
-          @container callout (min-width: ${wideCalloutMinWidth}) {
+          @container callout (min-width: ${wideLeadActionsMinWidth}) {
             flex-direction: row;
             align-items: flex-start;
             gap: ${euiTheme.size.l};
@@ -291,7 +296,7 @@ export function Callout({
             align-self: flex-start;
             max-width: 100%;
 
-            @container callout (min-width: ${wideCalloutMinWidth}) {
+            @container callout (min-width: ${wideLeadActionsMinWidth}) {
               flex-shrink: 0;
               align-self: center;
             }
