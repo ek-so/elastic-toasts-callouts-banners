@@ -89,7 +89,8 @@ function BannerSizeSection({
           </p>
         </EuiText>
       </EuiFlexItem>
-      {size !== 's' ? (
+      {/* TEMP: hide M screenshot specimen; L still shows screenshot + vector + no-image. */}
+      {size === 'l' ? (
         <EuiFlexItem grow={false}>
           <Banner
             dismissable={dismissable}
