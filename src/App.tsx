@@ -43,7 +43,7 @@ const INITIAL_SPECIMEN_COPY: Record<TopicTab, SpecimenCopy> = {
   banners: {
     title: 'Banner title',
     description:
-      'Shared banner body for S, M, and L (vector art or optional M/L screenshot)—stress-wrap in narrow columns, wide rows at the layout breakpoint so line length and action alignment are easy to compare.',
+      'Shared banner body for S, M, and L (vector art or optional L-only screenshot)—stress-wrap in narrow columns, wide rows at the layout breakpoint so line length and action alignment are easy to compare.',
   },
 };
 
@@ -53,9 +53,6 @@ export type AppContentWidth = 'narrow' | 'wide';
 
 const DEFAULT_NARROW_MAX_WIDTH_PX = 1000;
 const MIN_NARROW_MAX_WIDTH_PX = 600;
-
-/** TEMP: hide all Size L banner specimens on the Banners tab. */
-const SHOW_L_BANNER_SPECIMENS = false;
 
 /** Label above each specimen row, aligned with callouts (`Size M`, `Size S`, …). */
 function specimenSizeLabel(size: BannerSize): string {
@@ -92,7 +89,7 @@ function BannerSizeSection({
           </p>
         </EuiText>
       </EuiFlexItem>
-      {size !== 's' ? (
+      {size === 'l' ? (
         <EuiFlexItem grow={false}>
           <Banner
             dismissable={dismissable}
@@ -363,24 +360,20 @@ function TopicPanel({
           alignItems="stretch"
           css={{ maxWidth: '100%' }}
         >
-          {SHOW_L_BANNER_SPECIMENS ? (
-            <>
-              <BannerSizeSection
-                dismissable={dismissable}
-                hideDescription={hideDescription}
-                hidePrimaryButton={hidePrimaryButton}
-                hideSecondaryButton={hideSecondaryButton}
-                layoutBreakpointPx={layoutBreakpointPx}
-                onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
-                specimenDescription={specimenDescription}
-                specimenTitle={specimenTitle}
-                size="l"
-              />
-              <EuiFlexItem grow={false}>
-                <EuiSpacer size="l" />
-              </EuiFlexItem>
-            </>
-          ) : null}
+          <BannerSizeSection
+            dismissable={dismissable}
+            hideDescription={hideDescription}
+            hidePrimaryButton={hidePrimaryButton}
+            hideSecondaryButton={hideSecondaryButton}
+            layoutBreakpointPx={layoutBreakpointPx}
+            onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
+            specimenDescription={specimenDescription}
+            specimenTitle={specimenTitle}
+            size="l"
+          />
+          <EuiFlexItem grow={false}>
+            <EuiSpacer size="l" />
+          </EuiFlexItem>
           <BannerSizeSection
             dismissable={dismissable}
             hideDescription={hideDescription}

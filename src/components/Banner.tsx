@@ -26,7 +26,7 @@ function defaultBannerArtSrc(size: BannerSize): string {
   return `${base}banners/${file}.svg`;
 }
 
-/** Specimen UI screenshot in `public/banners/specimen-screenshot.png` (M/L `screenshot` prop). */
+/** Specimen UI screenshot in `public/banners/specimen-screenshot.png` (size L `screenshot` prop). */
 function specimenBannerScreenshotSrc(): string {
   const publicPath =
     typeof __webpack_public_path__ === 'string' && __webpack_public_path__ !== ''
@@ -70,16 +70,16 @@ export type BannerProps = {
    */
   onSubduedSpecimenPanel?: boolean;
   /**
-   * When `true` with `size="m"` or `"l"`, uses the specimen UI screenshot instead of the default vector art.
+   * When `true` with `size="l"`, uses the specimen UI screenshot instead of the default vector art.
    * The screenshot slot is **320×160** at the default theme scale (`20×` / `10×` theme `base` px).
-   * Ignored for `size="s"` and when `image` is set (including `null`).
+   * Ignored for `size="s"` / `"m"` and when `image` is set (including `null`).
    */
   screenshot?: boolean;
 };
 
 /**
  * Full-width-style banner shell aligned to callout spacing and typography (no left stripe).
- * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. Default vector art per size is served from `public/banners/` (`/banners/*.svg`); M/L may set `screenshot` to use `specimen-screenshot.png` in a **320×160** slot (`20×` / `10×` theme `base` px); override or hide with `image` / `image={null}`. Vector slots: 32×32 / 80×80 (`5×base` on M) / 120×120; image-to-copy gap `calc(0.75×size.base)` on `s` (12px when base is 16px) / `base` (`m`) / `l` (`l`). Default shell uses `backgroundBaseHighlighted` (or `backgroundBasePlain` when `onSubduedSpecimenPanel`); subdued border; body subdued; dismiss `text`.
+ * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. Default vector art per size is served from `public/banners/` (`/banners/*.svg`); size `l` may set `screenshot` to use `specimen-screenshot.png` in a **320×160** slot (`20×` / `10×` theme `base` px); override or hide with `image` / `image={null}`. Vector slots: 32×32 / 72×72 (`4.5×` theme `base` on M) / 120×120; image-to-copy gap `calc(0.75×size.base)` on `s` (12px when base is 16px) / `base` (`m`) / `l` (`l`). Default shell uses `backgroundBaseHighlighted` (or `backgroundBasePlain` when `onSubduedSpecimenPanel`); subdued border; body subdued; dismiss `text`.
  * At container width ≥`layoutBreakpointPx` on the root, `notification-content-box` lays out lead and actions in a row with vertical centering (`align-items: center`) and `size.l` gap, matching wide callouts.
  */
 export function Banner({
@@ -111,10 +111,10 @@ export function Banner({
   const thin = euiTheme.border.width.thin;
   const isS = size === 's';
   const isL = size === 'l';
-  const useScreenshotArt = screenshot && !isS && image === undefined;
+  const useScreenshotArt = screenshot && isL && image === undefined;
 
   /**
-   * Shell padding (top / right / bottom / left). M/L with `screenshot` art: `size.base` (~16px) start inset.
+   * Shell padding (top / right / bottom / left). Size L with `screenshot` art: `size.base` (~16px) start inset.
    * Otherwise same as before: `s` / `m` dismissable ends; L `xxl`/`xl`; non-dismissable tightening.
    */
   const padTop = isS ? '12px' : '0';
@@ -176,12 +176,12 @@ export function Banner({
         )
       : image;
   const hasImage = resolvedImage != null;
-  /** Slot edge length for vector art: `xl` (32px), `5×base` (80px at 16px base) for M, or 7.5×base (120px) for L. */
+  /** Slot edge length for vector art: `xl` (32px), `4.5×base` (72px at 16px base) for M, or 7.5×base (120px) for L. */
   const imageSlotSize = isS
     ? euiTheme.size.xl
     : isL
       ? `calc(${euiTheme.size.base} * 7.5)`
-      : `${euiTheme.base * 5}px`;
+      : `${euiTheme.base * 4.5}px`;
   /** Screenshot specimen slot: 320×160 at default scale (`20` / `10` × theme `base` px). */
   const screenshotSlotWidth = `${euiTheme.base * 20}px`;
   const screenshotSlotHeight = `${euiTheme.base * 10}px`;
@@ -191,13 +191,8 @@ export function Banner({
     : isL
       ? euiTheme.size.l
       : euiTheme.size.base;
-  /** Screenshot M/L only: gap between image slot and copy; M uses `size.l` (24px at default base), L uses `size.xl` (32px). */
-  const leadImageRowGap =
-    useScreenshotArt && !isS
-      ? isL
-        ? euiTheme.size.xl
-        : euiTheme.size.l
-      : imageLeadGap;
+  /** Screenshot (size L only): gap between image slot and copy. */
+  const leadImageRowGap = useScreenshotArt ? euiTheme.size.xl : imageLeadGap;
   /** Cap lead copy width (75 × theme base ≈ 1200px at default scale). */
   const textBoxMaxWidth = `${euiTheme.base * 75}px`;
 
