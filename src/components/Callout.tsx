@@ -109,7 +109,7 @@ function buttonColor(color: CalloutColor): 'primary' | 'success' | 'warning' | '
 /**
  * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius 2px).
  * `size="m"` — stacked title (`EuiTitle` `xs`) + body (`EuiText` `s`), `xs` gap between. `size="s"` — one wrapping lead line: `EuiTitle` `xxs` + full stop + `EuiText` `s` inline in the same block.
- * At container width ≥`layoutBreakpointPx` (`container-type: inline-size` on root), `notification-content-box` is a row with `align-items: center`: text wrapper grows on the main axis, actions sit to the right with `size.l` gap.
+ * At container width ≥`layoutBreakpointPx` (`container-type: inline-size` on root), `notification-content-box` is a row with `align-items: center`: text wrapper grows on the main axis, actions sit to the right with `size.xxl` gap (~40px at default scale).
  */
 export function Callout({
   title,
@@ -253,7 +253,7 @@ export function Callout({
           @container callout (min-width: ${wideLeadActionsMinWidth}) {
             flex-direction: row;
             align-items: center;
-            gap: ${euiTheme.size.l};
+            gap: ${euiTheme.size.xxl};
 
             [data-slot='${notificationSlots.textWrapper}'] {
               flex: 1;
