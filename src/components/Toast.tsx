@@ -12,6 +12,7 @@ import {
 } from '@elastic/eui';
 import type { ReactNode } from 'react';
 
+import { NotificationTitleBox } from './NotificationTitleBox';
 import { notificationSlots } from './notificationSlots';
 
 export type ToastColor = 'success' | 'warning' | 'danger' | 'neutral';
@@ -184,11 +185,14 @@ export function Toast({
               flex-direction: column;
               align-items: stretch;
               gap: ${euiTheme.size.xs};
+              min-width: 0;
             `}
           >
-            <EuiTitle size="xs">
-              <h4>{title}</h4>
-            </EuiTitle>
+            <NotificationTitleBox color={color}>
+              <EuiTitle size="xs">
+                <h4>{title}</h4>
+              </EuiTitle>
+            </NotificationTitleBox>
             {!hideDescription && children ? <EuiText size="s">{children}</EuiText> : null}
           </div>
         </div>
