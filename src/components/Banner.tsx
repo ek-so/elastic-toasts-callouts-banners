@@ -136,7 +136,7 @@ export function Banner({
       ? euiTheme.size.base
       : isL
         ? euiTheme.size.xl
-        : euiTheme.size.l;
+        : `${euiTheme.base * 1.25}px`;
 
   const rootPadding = `${padTop} ${padRight} ${padBottom} ${padLeft}`;
   /** Top/bottom padding for the inner body; size `s` uses shell padding instead (see `rootPadding`). */
