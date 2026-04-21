@@ -34,7 +34,7 @@ export type ToastProps = {
   dismissable?: boolean;
   /**
    * When set to a positive finite duration (ms), the **top** 3px accent is a determinate bar
-   * (`borderBaseSubdued` track, `borderStrong*` fill) for elapsed time vs this total—replacing the solid
+   * (`borderBase*` track per semantic color, `borderStrong*` fill) for elapsed time vs this total—replacing the solid
    * stripe—and `onDismiss` runs once when it elapses (in addition to manual dismiss).
    */
   liveDurationMs?: number;
@@ -72,9 +72,21 @@ function buttonColor(color: ToastColor): 'primary' | 'success' | 'warning' | 'da
   }
 }
 
-/** Unfilled live bar track — `borderBaseSubdued` for every toast color. */
-function liveProgressTrackColor(euiTheme: ReturnType<typeof useEuiTheme>['euiTheme']): string {
-  return euiTheme.colors.borderBaseSubdued;
+/** Unfilled live bar track — semantic `borderBase*` (same mapping as callout shell borders). */
+function liveProgressTrackColor(
+  euiTheme: ReturnType<typeof useEuiTheme>['euiTheme'],
+  color: ToastColor
+): string {
+  switch (color) {
+    case 'neutral':
+      return euiTheme.colors.borderBasePrimary;
+    case 'success':
+      return euiTheme.colors.borderBaseSuccess;
+    case 'warning':
+      return euiTheme.colors.borderBaseWarning;
+    case 'danger':
+      return euiTheme.colors.borderBaseDanger;
+  }
 }
 
 /**
@@ -216,9 +228,9 @@ export function Toast({
     showLiveProgress && liveDuration > 0
       ? Math.min(100, (100 * elapsedMs) / liveDuration)
       : 0;
-  const liveProgressTrack = liveProgressTrackColor(euiTheme);
+  const liveProgressTrack = liveProgressTrackColor(euiTheme, color);
   const liveProgressFill = stripeAccentColor(euiTheme, color);
-  /** Same footprint as the solid stripe: full-width top band, `borderBaseSubdued` track + `borderStrong*` fill. */
+  /** Same footprint as the solid stripe: full-width top band, semantic `borderBase*` track + `borderStrong*` fill. */
   const liveTopAccentTrackCss = css`
     position: absolute;
     z-index: 1;
