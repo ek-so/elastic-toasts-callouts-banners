@@ -108,7 +108,7 @@ function buttonColor(color: CalloutColor): 'primary' | 'success' | 'warning' | '
 }
 
 /**
- * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, TL/BL radius 2px).
+ * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, `1px` radius).
  * `size="m"` — title row (status icon + `EuiTitle` `xs`) then body (`EuiText` `s`), `xs` gap. `size="s"` — block lead: `inline-block` icon, then inline title + inline body so the sentence wraps with a shared baseline.
  * At container width ≥`layoutBreakpointPx` (`container-type: inline-size` on root), `notification-content-box` is a row with `align-items: center`: text wrapper grows on the main axis, actions sit to the right with `size.xxl` gap (~40px at default scale).
  */
@@ -135,6 +135,8 @@ export function Callout({
   const leftAccent = calloutLeftAccent(euiTheme, color);
   const btnColor = buttonColor(color);
   const specimenBorderRadius = '2px';
+  /** Left accent stripe only (not the callout shell). */
+  const calloutStripeBorderRadius = '1px';
   const thin = euiTheme.border.width.thin;
   const leftStripe = '3px';
   const isS = size === 's';
@@ -215,8 +217,7 @@ export function Callout({
       bottom: 0;
       width: ${leftStripe};
       background-color: ${leftAccent};
-      border-top-left-radius: ${specimenBorderRadius};
-      border-bottom-left-radius: ${specimenBorderRadius};
+      border-radius: ${calloutStripeBorderRadius};
       pointer-events: none;
     }
   `;

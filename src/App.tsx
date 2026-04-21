@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import {
+  EuiButton,
   EuiButtonGroup,
   EuiFieldNumber,
   EuiFlexGroup,
@@ -53,6 +54,9 @@ export type AppContentWidth = 'narrow' | 'wide';
 
 const DEFAULT_NARROW_MAX_WIDTH_PX = 1000;
 const MIN_NARROW_MAX_WIDTH_PX = 600;
+
+/** Toast specimens only: top-accent live countdown vs auto-dismiss (see Figma Banners–toasts–callouts). */
+const TOAST_SPECIMEN_LIVE_MS = 15_000;
 
 /** Label above each specimen row, aligned with callouts (`Size M`, `Size S`, …). */
 function specimenSizeLabel(size: BannerSize): string {
@@ -149,6 +153,7 @@ function TopicPanel({
   bannersPanelMode,
   specimenDescription,
   specimenTitle,
+  toastLiveResetKey,
 }: {
   topic: TopicTab;
   layoutBreakpointPx: number;
@@ -160,6 +165,8 @@ function TopicPanel({
   bannersPanelMode: BannersPanelMode;
   specimenDescription: string;
   specimenTitle: string;
+  /** Passed to toast specimens so “Reset progress” can restart the top live bar. */
+  toastLiveResetKey: number;
 }) {
   switch (topic) {
     case 'toasts':
@@ -176,6 +183,8 @@ function TopicPanel({
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
               hideSecondaryButton={hideSecondaryButton}
+              liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
+              liveProgressResetKey={toastLiveResetKey}
               color="neutral" title={specimenTitle}>
               {specimenDescription}
             </Toast>
@@ -186,6 +195,8 @@ function TopicPanel({
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
               hideSecondaryButton={hideSecondaryButton}
+              liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
+              liveProgressResetKey={toastLiveResetKey}
               color="success" title={specimenTitle}>
               {specimenDescription}
             </Toast>
@@ -196,6 +207,8 @@ function TopicPanel({
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
               hideSecondaryButton={hideSecondaryButton}
+              liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
+              liveProgressResetKey={toastLiveResetKey}
               color="warning" title={specimenTitle}>
               {specimenDescription}
             </Toast>
@@ -206,6 +219,8 @@ function TopicPanel({
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
               hideSecondaryButton={hideSecondaryButton}
+              liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
+              liveProgressResetKey={toastLiveResetKey}
               color="danger" title={specimenTitle}>
               {specimenDescription}
             </Toast>
@@ -432,6 +447,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
     callouts: { ...INITIAL_SPECIMEN_COPY.callouts },
     banners: { ...INITIAL_SPECIMEN_COPY.banners },
   }));
+  const [toastLiveResetKey, setToastLiveResetKey] = useState(0);
 
   const commitNarrowMaxWidth = () => {
     const parsed = Number.parseInt(narrowMaxWidthDraft, 10);
@@ -687,6 +703,19 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 />
               </EuiFlexItem>
             ) : null}
+            {selectedTab === 'toasts' ? (
+              <EuiFlexItem grow={false}>
+                <EuiButton
+                  size="s"
+                  color="text"
+                  fill={false}
+                  minWidth={false}
+                  onClick={() => setToastLiveResetKey((k) => k + 1)}
+                >
+                  Reset progress
+                </EuiButton>
+              </EuiFlexItem>
+            ) : null}
           </EuiFlexGroup>
           <EuiSpacer size="m" />
           <EuiFormRow fullWidth label="Title">
@@ -782,6 +811,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
               layoutBreakpointPx={narrowMaxWidthPx}
               specimenDescription={specimenCopy[selectedTab].description}
               specimenTitle={specimenCopy[selectedTab].title}
+              toastLiveResetKey={toastLiveResetKey}
               topic={selectedTab}
             />
           </EuiPanel>

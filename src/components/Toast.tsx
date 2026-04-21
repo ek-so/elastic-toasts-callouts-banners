@@ -10,7 +10,7 @@ import {
   useEuiShadow,
   useEuiTheme,
 } from '@elastic/eui';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { NotificationTitleBox } from './NotificationTitleBox';
 import { notificationSlots } from './notificationSlots';
@@ -32,10 +32,18 @@ export type ToastProps = {
   hidePrimaryButton?: boolean;
   hideSecondaryButton?: boolean;
   dismissable?: boolean;
+  /**
+   * When set to a positive finite duration (ms), the **top** 3px accent is a determinate bar
+   * (`borderBaseSubdued` track, `borderStrong*` fill) for elapsed time vs this total—replacing the solid
+   * stripe—and `onDismiss` runs once when it elapses (in addition to manual dismiss).
+   */
+  liveDurationMs?: number;
+  /** Increment (or any change) to restart the live bar from 0 without remounting the toast. */
+  liveProgressResetKey?: number;
 };
 
-/** Left accent fill — same hues as `borderStrong*` (separate layer, not `border-left`). */
-function leftAccentColor(
+/** Stripe accent fill — same hues as `borderStrong*` (separate layer, not a border property). */
+function stripeAccentColor(
   euiTheme: ReturnType<typeof useEuiTheme>['euiTheme'],
   color: ToastColor
 ): string {
@@ -64,11 +72,16 @@ function buttonColor(color: ToastColor): 'primary' | 'success' | 'warning' | 'da
   }
 }
 
+/** Unfilled live bar track — `borderBaseSubdued` for every toast color. */
+function liveProgressTrackColor(euiTheme: ReturnType<typeof useEuiTheme>['euiTheme']): string {
+  return euiTheme.colors.borderBaseSubdued;
+}
+
 /**
  * Toast card aligned to Figma node 6150:6490 (Banners–toasts–callouts):
- * 3px left accent (absolutely positioned span, not `::after`), 40px end padding for dismiss,
- * `useEuiShadow('l')` (Sass `euiBottomShadow` / Emotion per EUI shadow docs) so dark mode can add
- * the refresh-variant floating border on `::after` without conflicting with the stripe.
+ * 3px top accent—solid stripe (2px radius) by default, or a live bar (`euiTheme.border.radius.small` on track + fill) when `liveDurationMs` is set—
+ * absolutely positioned (not `::after`), 40px end padding for dismiss, `useEuiShadow('l')` so
+ * dark mode can add the refresh-variant floating border on `::after` without conflicting.
  * Primary CTA uses base `EuiButton` (`fill={false}` / secondary prominence) + semantic `color`;
  * second action is `EuiButtonEmpty` (matches EUI guidance for action hierarchy).
  */
@@ -86,15 +99,71 @@ export function Toast({
   hidePrimaryButton = false,
   hideSecondaryButton = false,
   dismissable = true,
+  liveDurationMs,
+  liveProgressResetKey = 0,
 }: ToastProps) {
   const euiThemeContext = useEuiTheme();
   const { euiTheme } = euiThemeContext;
-  const leftAccent = leftAccentColor(euiTheme, color);
+  const stripeAccent = stripeAccentColor(euiTheme, color);
   const btnColor = buttonColor(color);
-  const leftStripe = '3px';
+  /** Top solid stripe and live countdown bar (spec). */
+  const topAccentHeight = '3px';
   const specimenBorderRadius = '2px';
+  /** Live progress track + fill: single theme radius on all corners (`1×` = `border.radius.small`). */
+  const liveProgressRadius = euiTheme.border.radius.small;
   const shadowStyles = useEuiShadow('l', { borderAllInHighContrastMode: false });
   const paddingEnd = dismissable ? '40px' : euiTheme.size.base;
+  const paddingTopWithStripe = `calc(${topAccentHeight} + ${euiTheme.size.base})`;
+  const showLiveProgress =
+    typeof liveDurationMs === 'number' && liveDurationMs > 0 && Number.isFinite(liveDurationMs);
+  const paddingBottom = euiTheme.size.base;
+
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
+  const timerCancelledRef = useRef(false);
+  const autoCompleteFiredRef = useRef(false);
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  useEffect(() => {
+    if (!showLiveProgress) {
+      setElapsedMs(0);
+      return;
+    }
+
+    timerCancelledRef.current = false;
+    autoCompleteFiredRef.current = false;
+    setElapsedMs(0);
+
+    const duration = liveDurationMs as number;
+    const start = performance.now();
+    let raf = 0;
+    let alive = true;
+
+    const loop = (now: number) => {
+      if (!alive || timerCancelledRef.current) {
+        return;
+      }
+
+      const elapsed = Math.min(now - start, duration);
+      setElapsedMs(elapsed);
+
+      if (elapsed >= duration) {
+        if (!autoCompleteFiredRef.current) {
+          autoCompleteFiredRef.current = true;
+          onDismissRef.current?.();
+        }
+        return;
+      }
+
+      raf = requestAnimationFrame(loop);
+    };
+
+    raf = requestAnimationFrame(loop);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf);
+    };
+  }, [liveDurationMs, liveProgressResetKey, showLiveProgress]);
 
   const rootCss = css`
     position: relative;
@@ -107,7 +176,7 @@ export function Toast({
     border-bottom-right-radius: ${specimenBorderRadius};
     background-color: ${euiTheme.colors.emptyShade};
     border: none;
-    padding: ${euiTheme.size.base} ${paddingEnd} ${euiTheme.size.base} ${euiTheme.size.l};
+    padding: ${paddingTopWithStripe} ${paddingEnd} ${paddingBottom} ${euiTheme.size.l};
     word-break: break-word;
     ${shadowStyles}
   `;
@@ -116,12 +185,11 @@ export function Toast({
     position: absolute;
     z-index: 1;
     left: 0;
+    right: 0;
     top: 0;
-    bottom: 0;
-    width: ${leftStripe};
-    background-color: ${leftAccent};
-    border-top-left-radius: ${specimenBorderRadius};
-    border-bottom-left-radius: ${specimenBorderRadius};
+    height: ${topAccentHeight};
+    background-color: ${stripeAccent};
+    border-radius: ${specimenBorderRadius};
     pointer-events: none;
   `;
 
@@ -137,6 +205,39 @@ export function Toast({
     right: ${dismissFromEdge};
   `;
 
+  const handleDismissClick = () => {
+    timerCancelledRef.current = true;
+    onDismiss?.();
+  };
+
+  const liveDuration = showLiveProgress ? (liveDurationMs as number) : 0;
+  const liveProgressPct =
+    showLiveProgress && liveDuration > 0
+      ? Math.min(100, (100 * elapsedMs) / liveDuration)
+      : 0;
+  const liveProgressTrack = liveProgressTrackColor(euiTheme);
+  const liveProgressFill = stripeAccentColor(euiTheme, color);
+  /** Same footprint as the solid stripe: full-width top band, `borderBaseSubdued` track + `borderStrong*` fill. */
+  const liveTopAccentTrackCss = css`
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: ${topAccentHeight};
+    overflow: hidden;
+    border-radius: ${liveProgressRadius};
+    pointer-events: none;
+    background-color: ${liveProgressTrack};
+  `;
+  const liveProgressFillCss = css`
+    height: 100%;
+    width: ${liveProgressPct}%;
+    max-width: 100%;
+    border-radius: ${liveProgressRadius};
+    background-color: ${liveProgressFill};
+  `;
+
   return (
     <div
       data-slot={notificationSlots.root}
@@ -146,7 +247,21 @@ export function Toast({
       aria-live="polite"
       data-test-subj="toast"
     >
-      <span aria-hidden css={stripeCss} />
+      {showLiveProgress ? (
+        <div
+          role="progressbar"
+          aria-label="Auto-dismiss progress"
+          aria-valuemin={0}
+          aria-valuemax={liveDuration}
+          aria-valuenow={Math.round(elapsedMs)}
+          data-test-subj="toast-live-progress"
+          css={liveTopAccentTrackCss}
+        >
+          <div aria-hidden css={liveProgressFillCss} />
+        </div>
+      ) : (
+        <span aria-hidden css={stripeCss} />
+      )}
       {dismissable ? (
         <span css={closeCss}>
           <EuiButtonIcon
@@ -155,7 +270,7 @@ export function Toast({
             size="xs"
             display="empty"
             aria-label="Dismiss notification"
-            onClick={() => onDismiss?.()}
+            onClick={handleDismissClick}
           />
         </span>
       ) : null}
