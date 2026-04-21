@@ -13,17 +13,18 @@ const FILLED_STATUS_WARNING_SRC = '/notification-icons/filled-warning.svg';
 type EuiIconColor = 'success' | 'warning' | 'danger' | 'primary';
 
 function notificationStatusIconProps(
+  euiTheme: ReturnType<typeof useEuiTheme>['euiTheme'],
   color: NotificationSemanticColor,
   filled: boolean
-): { type: string; color?: EuiIconColor } {
+): { type: string; color?: EuiIconColor | string } {
   if (filled) {
     switch (color) {
       case 'success':
-        return { type: 'checkCircleFill', color: notificationStatusIconColor(color) };
+        return { type: 'checkCircleFill', color: euiTheme.colors.backgroundFilledSuccess };
       case 'warning':
         return { type: FILLED_STATUS_WARNING_SRC };
       case 'danger':
-        return { type: 'errorFilled', color: notificationStatusIconColor(color) };
+        return { type: 'errorFilled', color: euiTheme.colors.backgroundFilledDanger };
       case 'neutral':
         return { type: FILLED_STATUS_INFO_SRC };
     }
@@ -96,10 +97,11 @@ export function NotificationStatusIcon({
 }: {
   color: NotificationSemanticColor;
   slotPx?: 16 | 20;
-  /** Filled glyphs: EUI assets for success/danger; custom SVGs for neutral/info and warning when toggled on. */
+  /** Filled: `backgroundFilled*` on EUI filled glyphs; custom SVGs for neutral/info and warning. */
   filled?: boolean;
 }) {
-  const { type, color: iconColor } = notificationStatusIconProps(color, filled);
+  const { euiTheme } = useEuiTheme();
+  const { type, color: iconColor } = notificationStatusIconProps(euiTheme, color, filled);
   return (
     <span css={iconSlotCssFor(slotPx)}>
       <EuiIcon type={type} color={iconColor} size="m" aria-hidden />

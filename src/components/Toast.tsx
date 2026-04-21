@@ -38,8 +38,9 @@ export type ToastProps = {
   dismissable?: boolean;
   /**
    * When set to a positive finite duration (ms), the **top** 3px accent is a determinate bar
-   * (`borderBase*` track per semantic color, `borderStrong*` fill) for elapsed time vs this total—replacing the solid
-   * stripe—and `onDismiss` runs once when it elapses (in addition to manual dismiss).
+   * (`backgroundLight*` track, `backgroundFilled*` fill per semantic color; **warning** uses `borderStrongWarning` for
+   * the fill) for elapsed time vs this total—replacing
+   * the solid stripe—and `onDismiss` runs once when it elapses (in addition to manual dismiss).
    */
   liveDurationMs?: number;
   /** Increment (or any change) to restart the live bar from 0 without remounting the toast. */
@@ -76,20 +77,37 @@ function buttonColor(color: ToastColor): 'primary' | 'success' | 'warning' | 'da
   }
 }
 
-/** Unfilled live bar track — semantic `borderBase*` (same mapping as callout shell borders). */
+/** Live bar track — semantic `backgroundLight*` (lighter band behind the fill). */
 function liveProgressTrackColor(
   euiTheme: ReturnType<typeof useEuiTheme>['euiTheme'],
   color: ToastColor
 ): string {
   switch (color) {
     case 'neutral':
-      return euiTheme.colors.borderBasePrimary;
+      return euiTheme.colors.backgroundLightPrimary;
     case 'success':
-      return euiTheme.colors.borderBaseSuccess;
+      return euiTheme.colors.backgroundLightSuccess;
     case 'warning':
-      return euiTheme.colors.borderBaseWarning;
+      return euiTheme.colors.backgroundLightWarning;
     case 'danger':
-      return euiTheme.colors.borderBaseDanger;
+      return euiTheme.colors.backgroundLightDanger;
+  }
+}
+
+/** Live bar fill — `backgroundFilled*` except **warning**, which uses `borderStrongWarning`. */
+function liveProgressFillColor(
+  euiTheme: ReturnType<typeof useEuiTheme>['euiTheme'],
+  color: ToastColor
+): string {
+  switch (color) {
+    case 'neutral':
+      return euiTheme.colors.backgroundFilledPrimary;
+    case 'success':
+      return euiTheme.colors.backgroundFilledSuccess;
+    case 'warning':
+      return euiTheme.colors.borderStrongWarning;
+    case 'danger':
+      return euiTheme.colors.backgroundFilledDanger;
   }
 }
 
@@ -235,8 +253,8 @@ export function Toast({
       ? Math.min(100, (100 * elapsedMs) / liveDuration)
       : 0;
   const liveProgressTrack = liveProgressTrackColor(euiTheme, color);
-  const liveProgressFill = stripeAccentColor(euiTheme, color);
-  /** Same footprint as the solid stripe: full-width top band, semantic `borderBase*` track + `borderStrong*` fill. */
+  const liveProgressFill = liveProgressFillColor(euiTheme, color);
+  /** Same footprint as the solid stripe: full-width top band, `backgroundLight*` track + fill (`backgroundFilled*`, warning: `borderStrongWarning`). */
   const liveTopAccentTrackCss = css`
     position: absolute;
     z-index: 1;
