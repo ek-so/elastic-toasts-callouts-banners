@@ -11,7 +11,7 @@ import {
 } from '@elastic/eui';
 import type { ReactNode } from 'react';
 
-import { NotificationStatusIcon, NotificationTitleBox } from './NotificationTitleBox';
+import { NotificationIconLead } from './NotificationTitleBox';
 import { notificationSlots } from './notificationSlots';
 
 export type CalloutColor = 'success' | 'warning' | 'danger' | 'neutral';
@@ -22,7 +22,7 @@ export type CalloutProps = {
   title: ReactNode;
   children?: ReactNode;
   color?: CalloutColor;
-  /** `m` — default scales, 40px end when `dismissable`; `s` — 12px / 16px insets + 40px end when dismissable. When not dismissable, end padding is `size.l` (`m`) or `size.base` (`s`). */
+  /** `m` — 16px leading inset to the icon, `size.base` vertical, 40px end when `dismissable`; `s` — 12px / 16px insets + 40px end when dismissable. When not dismissable, end padding is `size.l` (`m`) or `size.base` (`s`). */
   size?: CalloutSize;
   primaryLabel?: ReactNode;
   secondaryLabel?: ReactNode;
@@ -109,8 +109,8 @@ function buttonColor(color: CalloutColor): 'primary' | 'success' | 'warning' | '
 
 /**
  * Callout: `backgroundBase*`, thin `borderBase*` on three sides, 3px left stripe (`::after`, `1px` radius).
- * `size="m"` — title row (status icon + `EuiTitle` `xs`) then body (`EuiText` `s`), `xs` gap. `size="s"` — block lead: `inline-block` icon, then inline title + inline body so the sentence wraps with a shared baseline.
- * At container width ≥`layoutBreakpointPx` (`container-type: inline-size` on root), `notification-content-box` is a row with `align-items: center`: text wrapper grows on the main axis, actions sit to the right with `size.xxl` gap (~40px at default scale).
+ * `size="m"` — status icon (20px) in a leading column, then copy: `EuiTitle` `xs`, body (`EuiText` `s`), `xs` gap. `size="s"` — 16px icon lead, then inline `EuiTitle` `xxs` + inline body so the header and description wrap as one line box (shared baseline).
+ * At container width ≥`layoutBreakpointPx` (`container-type: inline-size` on root), the **content** region (everything right of the icon) is a row with `align-items: center`: text wrapper grows, actions sit to the right with `size.xxl` gap (~40px at default scale).
  */
 export function Callout({
   title,
@@ -140,15 +140,16 @@ export function Callout({
   const thin = euiTheme.border.width.thin;
   const leftStripe = '3px';
   const isS = size === 's';
-  /** Size `s`: 40px end when dismissable; 16px end when not. Size `m`: 40 vs 24 end. */
+  /** Size `s`: 40px end when dismissable; 16px end when not. Size `m`: 16px leading (edge → icon), 40 vs `size.l` end. */
   const rootPadding = dismissable
     ? isS
       ? '12px 40px 12px 16px'
-      : `${euiTheme.size.base} 40px ${euiTheme.size.base} ${euiTheme.size.l}`
+      : `${euiTheme.size.base} 40px ${euiTheme.size.base} 16px`
     : isS
       ? `12px ${euiTheme.size.base} 12px ${euiTheme.size.base}`
-      : `${euiTheme.size.base} ${euiTheme.size.l} ${euiTheme.size.base} ${euiTheme.size.l}`;
-  const dismissFromEdge = `calc(${euiTheme.size.xs} + 4px)`;
+      : `${euiTheme.size.base} ${euiTheme.size.l} ${euiTheme.size.base} 16px`;
+  /** 10px from top/right at default scale: `size.xs` + `size.xs` + `border.width.thick`. */
+  const dismissFromEdge = `calc(${euiTheme.size.xs} + ${euiTheme.size.xs} + ${euiTheme.border.width.thick})`;
   const closeInset = dismissFromEdge;
   const closeInsetInline = dismissFromEdge;
   const blockGap = isS ? '8px' : euiTheme.size.m;
@@ -156,20 +157,13 @@ export function Callout({
   /** Cap copy width (75 × theme base ≈ 1200px at default scale). */
   const textBoxMaxWidth = `${euiTheme.base * 75}px`;
 
-  /** Size `s`: icon in its own `inline-block` so title + body stay inline siblings and share one text baseline. */
+  /** Size `s`: inline title + body share one wrapping context (icon sits in `NotificationIconLead`). */
   const sLeadWrapCss = css`
     display: block;
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;
     word-break: break-word;
-  `;
-  const sIconLeadCss = css`
-    display: inline-block;
-    margin-inline-end: calc(${euiTheme.size.base} * 0.25);
-    line-height: 0;
-    vertical-align: middle;
-    transform: translateY(calc(${euiTheme.size.base} * -0.125));
   `;
   const sLeadHeadingCss = css`
     display: inline;
@@ -257,160 +251,166 @@ export function Callout({
         css={css`
           position: relative;
           z-index: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: stretch;
-          gap: ${blockGap};
           min-width: 0;
-
-          @container callout (min-width: ${wideLeadActionsMinWidth}) {
-            flex-direction: row;
-            align-items: center;
-            gap: ${euiTheme.size.xxl};
-
-            [data-slot='${notificationSlots.textWrapper}'] {
-              flex: 1;
-              min-width: 0;
-            }
-          }
         `}
       >
-        <div
-          data-slot={notificationSlots.textWrapper}
-          css={css`
-            min-width: 0;
-            max-width: 100%;
-          `}
-        >
+        <NotificationIconLead color={color} iconSlotPx={isS ? 16 : 20}>
           <div
-            data-slot={notificationSlots.textBox}
-            css={
-              isS
-                ? css`
-                    display: block;
-                    min-width: 0;
-                    max-width: ${textBoxMaxWidth};
-                  `
-                : css`
-                    display: flex;
-                    flex-direction: column;
-                    align-items: stretch;
-                    gap: ${euiTheme.size.xs};
-                    min-width: 0;
-                    max-width: ${textBoxMaxWidth};
-                  `
-            }
-          >
-            {isS ? (
-              <div css={sLeadWrapCss}>
-                <span css={sIconLeadCss}>
-                  <NotificationStatusIcon color={color} />
-                </span>
-                <EuiTitle size="xxs">
-                  <h5 css={sLeadHeadingCss}>
-                    {title}
-                    {!hideDescription ? '.' : null}
-                  </h5>
-                </EuiTitle>
-                {!hideDescription && children != null ? (
-                  <>
-                    {' '}
-                    <EuiText size="s" component="span" css={sLeadBodyCss}>
-                      {children}
-                    </EuiText>
-                  </>
-                ) : null}
-              </div>
-            ) : (
-              <>
-                <NotificationTitleBox color={color}>
-                  <EuiTitle size="xs">
-                    <h4>{title}</h4>
-                  </EuiTitle>
-                </NotificationTitleBox>
-                {!hideDescription && children ? <EuiText size="s">{children}</EuiText> : null}
-              </>
-            )}
-          </div>
-        </div>
-
-        {showActionButtons ? (
-          <div
-            data-slot={notificationSlots.buttonBox}
             css={css`
-              align-self: flex-start;
-              max-width: 100%;
               display: flex;
               flex-direction: column;
-              justify-content: flex-end;
-              min-height: 0;
+              align-items: stretch;
+              gap: ${blockGap};
+              min-width: 0;
+              flex: 1 1 auto;
 
               @container callout (min-width: ${wideLeadActionsMinWidth}) {
-                flex-shrink: 0;
-                align-self: stretch;
+                flex-direction: row;
+                align-items: center;
+                gap: ${euiTheme.size.xxl};
+
+                [data-slot='${notificationSlots.textWrapper}'] {
+                  flex: 1;
+                  min-width: 0;
+                }
               }
             `}
           >
-            <EuiFlexGroup
-              responsive={false}
-              gutterSize={actionsGutter}
-              alignItems="center"
-              justifyContent="flexStart"
-              wrap
+            <div
+              data-slot={notificationSlots.textWrapper}
               css={css`
-                /* EUI defaults flex-grow:1 on FlexGroup; that fills the button column and ignores parent justify-end. */
-                flex-grow: 0;
-                flex-shrink: 0;
-
-                @container callout (min-width: ${wideLeadActionsMinWidth}) {
-                  flex-direction: row-reverse;
-                }
+                min-width: 0;
+                max-width: 100%;
               `}
             >
-              {showPrimaryButton ? (
-                <EuiFlexItem grow={false} css={{ minWidth: 0, maxWidth: '100%' }}>
-                  <span
-                    css={css`
-                      display: inline-flex;
-                      max-width: 100%;
-                      flex: 0 1 auto;
-                    `}
-                  >
-                    <EuiButton
-                      size="s"
-                      color={btnColor}
-                      fill={false}
-                      fullWidth={false}
-                      minWidth={false}
-                      onClick={onPrimaryClick}
-                    >
-                      {primaryLabel}
-                    </EuiButton>
-                  </span>
-                </EuiFlexItem>
-              ) : null}
-              {showSecondaryButton ? (
-                <EuiFlexItem grow={false} css={{ minWidth: 0, flexShrink: 0 }}>
-                  <span
-                    css={css`
-                      display: inline-flex;
-                      flex: 0 0 auto;
-                      max-width: 100%;
-                    `}
-                  >
-                    <EuiButtonEmpty
-                      size="s"
-                      color={btnColor}
-                      onClick={onSecondaryClick}
-                    >
-                      {secondaryLabel}
-                    </EuiButtonEmpty>
-                  </span>
-                </EuiFlexItem>
-              ) : null}
-            </EuiFlexGroup>
+              <div
+                data-slot={notificationSlots.textBox}
+                css={
+                  isS
+                    ? css`
+                        display: block;
+                        min-width: 0;
+                        max-width: ${textBoxMaxWidth};
+                      `
+                    : css`
+                        display: flex;
+                        flex-direction: column;
+                        align-items: stretch;
+                        gap: ${euiTheme.size.xs};
+                        min-width: 0;
+                        max-width: ${textBoxMaxWidth};
+                        overflow-wrap: anywhere;
+                        word-break: break-word;
+                      `
+                }
+              >
+                {isS ? (
+                  <div css={sLeadWrapCss}>
+                    <EuiTitle size="xxs">
+                      <h5 css={sLeadHeadingCss}>
+                        {title}
+                        {!hideDescription ? '.' : null}
+                      </h5>
+                    </EuiTitle>
+                    {!hideDescription && children != null ? (
+                      <>
+                        {' '}
+                        <EuiText size="s" component="span" css={sLeadBodyCss}>
+                          {children}
+                        </EuiText>
+                      </>
+                    ) : null}
+                  </div>
+                ) : (
+                  <>
+                    <EuiTitle size="xs">
+                      <h4>{title}</h4>
+                    </EuiTitle>
+                    {!hideDescription && children ? <EuiText size="s">{children}</EuiText> : null}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {showActionButtons ? (
+              <div
+                data-slot={notificationSlots.buttonBox}
+                css={css`
+                  align-self: flex-start;
+                  max-width: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: flex-end;
+                  min-height: 0;
+
+                  @container callout (min-width: ${wideLeadActionsMinWidth}) {
+                    flex-shrink: 0;
+                    align-self: stretch;
+                  }
+                `}
+              >
+                <EuiFlexGroup
+                  responsive={false}
+                  gutterSize={actionsGutter}
+                  alignItems="center"
+                  justifyContent="flexStart"
+                  wrap
+                  css={css`
+                    /* EUI defaults flex-grow:1 on FlexGroup; that fills the button column and ignores parent justify-end. */
+                    flex-grow: 0;
+                    flex-shrink: 0;
+
+                    @container callout (min-width: ${wideLeadActionsMinWidth}) {
+                      flex-direction: row-reverse;
+                    }
+                  `}
+                >
+                  {showPrimaryButton ? (
+                    <EuiFlexItem grow={false} css={{ minWidth: 0, maxWidth: '100%' }}>
+                      <span
+                        css={css`
+                          display: inline-flex;
+                          max-width: 100%;
+                          flex: 0 1 auto;
+                        `}
+                      >
+                        <EuiButton
+                          size="s"
+                          color={btnColor}
+                          fill={false}
+                          fullWidth={false}
+                          minWidth={false}
+                          onClick={onPrimaryClick}
+                        >
+                          {primaryLabel}
+                        </EuiButton>
+                      </span>
+                    </EuiFlexItem>
+                  ) : null}
+                  {showSecondaryButton ? (
+                    <EuiFlexItem grow={false} css={{ minWidth: 0, flexShrink: 0 }}>
+                      <span
+                        css={css`
+                          display: inline-flex;
+                          flex: 0 0 auto;
+                          max-width: 100%;
+                        `}
+                      >
+                        <EuiButtonEmpty
+                          size="s"
+                          color={btnColor}
+                          onClick={onSecondaryClick}
+                        >
+                          {secondaryLabel}
+                        </EuiButtonEmpty>
+                      </span>
+                    </EuiFlexItem>
+                  ) : null}
+                </EuiFlexGroup>
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        </NotificationIconLead>
       </div>
     </div>
   );

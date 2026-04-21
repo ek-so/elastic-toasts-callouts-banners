@@ -12,7 +12,7 @@ import {
 } from '@elastic/eui';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-import { NotificationTitleBox } from './NotificationTitleBox';
+import { NotificationIconLead } from './NotificationTitleBox';
 import { notificationSlots } from './notificationSlots';
 
 export type ToastColor = 'success' | 'warning' | 'danger' | 'neutral';
@@ -80,7 +80,7 @@ function liveProgressTrackColor(euiTheme: ReturnType<typeof useEuiTheme>['euiThe
 /**
  * Toast card aligned to Figma node 6150:6490 (Banners–toasts–callouts):
  * 3px top accent—solid stripe (2px radius) by default, or a live bar (`euiTheme.border.radius.small` on track + fill) when `liveDurationMs` is set—
- * absolutely positioned (not `::after`), 40px end padding for dismiss, `useEuiShadow('l')` so
+ * absolutely positioned (not `::after`), 16px leading inset to the icon, 40px end padding for dismiss, `useEuiShadow('l')` so
  * dark mode can add the refresh-variant floating border on `::after` without conflicting.
  * Primary CTA uses base `EuiButton` (`fill={false}` / secondary prominence) + semantic `color`;
  * second action is `EuiButtonEmpty` (matches EUI guidance for action hierarchy).
@@ -176,7 +176,7 @@ export function Toast({
     border-bottom-right-radius: ${specimenBorderRadius};
     background-color: ${euiTheme.colors.emptyShade};
     border: none;
-    padding: ${paddingTopWithStripe} ${paddingEnd} ${paddingBottom} ${euiTheme.size.l};
+    padding: ${paddingTopWithStripe} ${paddingEnd} ${paddingBottom} 16px;
     word-break: break-word;
     ${shadowStyles}
   `;
@@ -193,7 +193,8 @@ export function Toast({
     pointer-events: none;
   `;
 
-  const dismissFromEdge = `calc(${euiTheme.size.xs} + 4px)`;
+  /** 10px from top/right at default scale: `size.xs` + `size.xs` + `border.width.thick`. */
+  const dismissFromEdge = `calc(${euiTheme.size.xs} + ${euiTheme.size.xs} + ${euiTheme.border.width.thick})`;
   const showPrimaryButton = !hidePrimaryButton;
   const showSecondaryButton = !hideSecondaryButton;
   const showActionButtons = showPrimaryButton || showSecondaryButton;
@@ -280,93 +281,101 @@ export function Toast({
         css={css`
           position: relative;
           z-index: 2;
-          display: flex;
-          flex-direction: column;
-          align-items: stretch;
-          gap: ${euiTheme.size.m};
+          min-width: 0;
         `}
       >
-        <div
-          data-slot={notificationSlots.textWrapper}
-          css={css`
-            min-width: 0;
-            max-width: 100%;
-          `}
-        >
+        <NotificationIconLead color={color} iconSlotPx={20}>
           <div
-            data-slot={notificationSlots.textBox}
             css={css`
               display: flex;
               flex-direction: column;
               align-items: stretch;
-              gap: ${euiTheme.size.xs};
+              gap: ${euiTheme.size.m};
               min-width: 0;
+              flex: 1 1 auto;
             `}
           >
-            <NotificationTitleBox color={color}>
-              <EuiTitle size="xs">
-                <h4>{title}</h4>
-              </EuiTitle>
-            </NotificationTitleBox>
-            {!hideDescription && children ? <EuiText size="s">{children}</EuiText> : null}
-          </div>
-        </div>
-
-        {showActionButtons ? (
-          <div
-            data-slot={notificationSlots.buttonBox}
-            css={css`
-              align-self: flex-start;
-              max-width: 100%;
-            `}
-          >
-            <EuiFlexGroup
-              responsive={false}
-              gutterSize="s"
-              alignItems="center"
-              justifyContent="flexStart"
-              wrap
+            <div
+              data-slot={notificationSlots.textWrapper}
+              css={css`
+                min-width: 0;
+                max-width: 100%;
+              `}
             >
-              {showPrimaryButton ? (
-                <EuiFlexItem grow={false} css={{ minWidth: 0, maxWidth: '100%' }}>
-                  <span
-                    css={css`
-                      display: inline-flex;
-                      max-width: 100%;
-                      flex: 0 1 auto;
-                    `}
-                  >
-                    <EuiButton
-                      size="s"
-                      color={btnColor}
-                      fill={false}
-                      fullWidth={false}
-                      minWidth={false}
-                      onClick={onPrimaryClick}
-                    >
-                      {primaryLabel}
-                    </EuiButton>
-                  </span>
-                </EuiFlexItem>
-              ) : null}
-              {showSecondaryButton ? (
-                <EuiFlexItem grow={false} css={{ minWidth: 0, flexShrink: 0 }}>
-                  <span
-                    css={css`
-                      display: inline-flex;
-                      flex: 0 0 auto;
-                      max-width: 100%;
-                    `}
-                  >
-                    <EuiButtonEmpty size="s" color={btnColor} onClick={onSecondaryClick}>
-                      {secondaryLabel}
-                    </EuiButtonEmpty>
-                  </span>
-                </EuiFlexItem>
-              ) : null}
-            </EuiFlexGroup>
+              <div
+                data-slot={notificationSlots.textBox}
+                css={css`
+                  display: flex;
+                  flex-direction: column;
+                  align-items: stretch;
+                  gap: ${euiTheme.size.xs};
+                  min-width: 0;
+                `}
+              >
+                <EuiTitle size="xs">
+                  <h4>{title}</h4>
+                </EuiTitle>
+                {!hideDescription && children ? <EuiText size="s">{children}</EuiText> : null}
+              </div>
+            </div>
+
+            {showActionButtons ? (
+              <div
+                data-slot={notificationSlots.buttonBox}
+                css={css`
+                  align-self: flex-start;
+                  max-width: 100%;
+                `}
+              >
+                <EuiFlexGroup
+                  responsive={false}
+                  gutterSize="s"
+                  alignItems="center"
+                  justifyContent="flexStart"
+                  wrap
+                >
+                  {showPrimaryButton ? (
+                    <EuiFlexItem grow={false} css={{ minWidth: 0, maxWidth: '100%' }}>
+                      <span
+                        css={css`
+                          display: inline-flex;
+                          max-width: 100%;
+                          flex: 0 1 auto;
+                        `}
+                      >
+                        <EuiButton
+                          size="s"
+                          color={btnColor}
+                          fill={false}
+                          fullWidth={false}
+                          minWidth={false}
+                          onClick={onPrimaryClick}
+                        >
+                          {primaryLabel}
+                        </EuiButton>
+                      </span>
+                    </EuiFlexItem>
+                  ) : null}
+                  {showSecondaryButton ? (
+                    <EuiFlexItem grow={false} css={{ minWidth: 0, flexShrink: 0 }}>
+                      <span
+                        css={css`
+                          display: inline-flex;
+                          flex: 0 0 auto;
+                          max-width: 100%;
+                        `}
+                      >
+                        <EuiButtonEmpty size="s" color={btnColor} onClick={onSecondaryClick}>
+                          {secondaryLabel}
+                        </EuiButtonEmpty>
+                      </span>
+                    </EuiFlexItem>
+                  ) : null}
+                </EuiFlexGroup>
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        </NotificationIconLead>
       </div>
     </div>
   );
