@@ -43,6 +43,8 @@ export type CalloutProps = {
   hideSecondaryButton?: boolean;
   /** When true, primary CTA uses filled `EuiButton` (`fill`). */
   primaryButtonFill?: boolean;
+  /** When true, status lead icon uses filled glyphs where EUI provides them. */
+  filledIcons?: boolean;
   /** When false, the dismiss control is hidden and end padding is reduced (specimen chrome). */
   dismissable?: boolean;
 };
@@ -130,6 +132,7 @@ export function Callout({
   hidePrimaryButton = false,
   hideSecondaryButton = false,
   primaryButtonFill = false,
+  filledIcons = false,
   dismissable = true,
 }: CalloutProps) {
   const { euiTheme } = useEuiTheme();
@@ -297,7 +300,7 @@ export function Callout({
             `}
           >
             <NotificationIconBox>
-              <NotificationStatusIcon color={color} slotPx={isS ? 16 : 20} />
+              <NotificationStatusIcon color={color} slotPx={isS ? 16 : 20} filled={filledIcons} />
             </NotificationIconBox>
             <div
               data-slot={notificationSlots.textBox}

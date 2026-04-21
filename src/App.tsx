@@ -155,6 +155,7 @@ function TopicPanel({
   hidePrimaryButton,
   hideSecondaryButton,
   primaryButtonFill,
+  filledIcons,
   dismissable,
   bannersPanelMode,
   specimenDescription,
@@ -167,6 +168,7 @@ function TopicPanel({
   hidePrimaryButton: boolean;
   hideSecondaryButton: boolean;
   primaryButtonFill: boolean;
+  filledIcons: boolean;
   dismissable: boolean;
   /** Used when `topic === 'banners'`; `plain` keeps default panel + subdued banner shells. */
   bannersPanelMode: BannersPanelMode;
@@ -191,6 +193,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
               liveProgressResetKey={toastLiveResetKey}
               color="neutral" title={specimenTitle}>
@@ -204,6 +207,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
               liveProgressResetKey={toastLiveResetKey}
               color="success" title={specimenTitle}>
@@ -217,6 +221,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
               liveProgressResetKey={toastLiveResetKey}
               color="warning" title={specimenTitle}>
@@ -230,6 +235,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
               liveProgressResetKey={toastLiveResetKey}
               color="danger" title={specimenTitle}>
@@ -260,6 +266,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               layoutBreakpointPx={layoutBreakpointPx}
               size="m"
               color="neutral"
@@ -275,6 +282,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               layoutBreakpointPx={layoutBreakpointPx}
               size="m"
               color="success"
@@ -290,6 +298,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               layoutBreakpointPx={layoutBreakpointPx}
               size="m"
               color="warning"
@@ -305,6 +314,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               layoutBreakpointPx={layoutBreakpointPx}
               size="m"
               color="danger"
@@ -331,6 +341,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               layoutBreakpointPx={layoutBreakpointPx}
               size="s"
               color="neutral"
@@ -346,6 +357,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               layoutBreakpointPx={layoutBreakpointPx}
               size="s"
               color="success"
@@ -361,6 +373,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               layoutBreakpointPx={layoutBreakpointPx}
               size="s"
               color="warning"
@@ -376,6 +389,7 @@ function TopicPanel({
               hidePrimaryButton={hidePrimaryButton}
               primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
+              filledIcons={filledIcons}
               layoutBreakpointPx={layoutBreakpointPx}
               size="s"
               color="danger"
@@ -461,6 +475,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   const [showSecondaryButton, setShowSecondaryButton] = useState(true);
   /** When `true`, primary CTA uses filled `EuiButton`. */
   const [filledPrimaryButton, setFilledPrimaryButton] = useState(false);
+  const [filledIcons, setFilledIcons] = useState(false);
   const [dismissable, setDismissable] = useState(true);
   const [bannersPanelMode, setBannersPanelMode] = useState<BannersPanelMode>('plain');
   const [selectedTab, setSelectedTab] = useState<TopicTab>('callouts');
@@ -782,13 +797,15 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 onChange={(e) => setShowPrimaryButton(e.target.checked)}
               />
             </EuiFlexItem>
-            <EuiFlexItem grow={false}>
-              <EuiSwitch
-                label="Filled primary btn"
-                checked={filledPrimaryButton}
-                onChange={(e) => setFilledPrimaryButton(e.target.checked)}
-              />
-            </EuiFlexItem>
+            {showPrimaryButton ? (
+              <EuiFlexItem grow={false}>
+                <EuiSwitch
+                  label="Filled primary btn"
+                  checked={filledPrimaryButton}
+                  onChange={(e) => setFilledPrimaryButton(e.target.checked)}
+                />
+              </EuiFlexItem>
+            ) : null}
             <EuiFlexItem grow={false}>
               <EuiSwitch
                 label="Secondary btn"
@@ -803,6 +820,15 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 onChange={(e) => setDismissable(e.target.checked)}
               />
             </EuiFlexItem>
+            {selectedTab === 'callouts' || selectedTab === 'toasts' ? (
+              <EuiFlexItem grow={false}>
+                <EuiSwitch
+                  label="Filled icons"
+                  checked={filledIcons}
+                  onChange={(e) => setFilledIcons(e.target.checked)}
+                />
+              </EuiFlexItem>
+            ) : null}
           </EuiFlexGroup>
           {showDescription ? (
             <>
@@ -839,6 +865,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
             <TopicPanel
               bannersPanelMode={bannersPanelMode}
               dismissable={dismissable}
+              filledIcons={filledIcons}
               hideDescription={!showDescription}
               hidePrimaryButton={!showPrimaryButton}
               hideSecondaryButton={!showSecondaryButton}

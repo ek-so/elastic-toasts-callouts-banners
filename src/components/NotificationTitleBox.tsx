@@ -6,16 +6,37 @@ import { notificationSlots } from './notificationSlots';
 
 export type NotificationSemanticColor = 'success' | 'warning' | 'danger' | 'neutral';
 
-function notificationStatusIconType(color: NotificationSemanticColor): string {
+/** Custom filled art for specimen “Filled icons” toggle (served from `public/`). */
+const FILLED_STATUS_INFO_SRC = '/notification-icons/filled-info.svg';
+const FILLED_STATUS_WARNING_SRC = '/notification-icons/filled-warning.svg';
+
+type EuiIconColor = 'success' | 'warning' | 'danger' | 'primary';
+
+function notificationStatusIconProps(
+  color: NotificationSemanticColor,
+  filled: boolean
+): { type: string; color?: EuiIconColor } {
+  if (filled) {
+    switch (color) {
+      case 'success':
+        return { type: 'checkCircleFill', color: notificationStatusIconColor(color) };
+      case 'warning':
+        return { type: FILLED_STATUS_WARNING_SRC };
+      case 'danger':
+        return { type: 'errorFilled', color: notificationStatusIconColor(color) };
+      case 'neutral':
+        return { type: FILLED_STATUS_INFO_SRC };
+    }
+  }
   switch (color) {
     case 'success':
-      return 'checkCircle';
+      return { type: 'checkCircle', color: notificationStatusIconColor(color) };
     case 'warning':
-      return 'warning';
+      return { type: 'warning', color: notificationStatusIconColor(color) };
     case 'danger':
-      return 'error';
+      return { type: 'error', color: notificationStatusIconColor(color) };
     case 'neutral':
-      return 'info';
+      return { type: 'info', color: notificationStatusIconColor(color) };
   }
 }
 
@@ -71,18 +92,17 @@ export function NotificationIconBox({ children }: { children: ReactNode }) {
 export function NotificationStatusIcon({
   color,
   slotPx = 16,
+  filled = false,
 }: {
   color: NotificationSemanticColor;
   slotPx?: 16 | 20;
+  /** Filled glyphs: EUI assets for success/danger; custom SVGs for neutral/info and warning when toggled on. */
+  filled?: boolean;
 }) {
+  const { type, color: iconColor } = notificationStatusIconProps(color, filled);
   return (
     <span css={iconSlotCssFor(slotPx)}>
-      <EuiIcon
-        type={notificationStatusIconType(color)}
-        color={notificationStatusIconColor(color)}
-        size="m"
-        aria-hidden
-      />
+      <EuiIcon type={type} color={iconColor} size="m" aria-hidden />
     </span>
   );
 }
@@ -95,12 +115,15 @@ export function NotificationIconLead({
   color,
   iconSlotPx,
   iconToCopyGap,
+  statusIconFilled = false,
   children,
 }: {
   color: NotificationSemanticColor;
   iconSlotPx: 16 | 20;
   /** Horizontal space between icon box and copy; defaults to `euiTheme.size.s`. */
   iconToCopyGap?: string;
+  /** Use filled status glyphs where available (toast / callout specimens). */
+  statusIconFilled?: boolean;
   children: ReactNode;
 }) {
   const { euiTheme } = useEuiTheme();
@@ -119,7 +142,7 @@ export function NotificationIconLead({
     >
       <EuiFlexItem grow={false}>
         <NotificationIconBox>
-          <NotificationStatusIcon color={color} slotPx={iconSlotPx} />
+          <NotificationStatusIcon color={color} slotPx={iconSlotPx} filled={statusIconFilled} />
         </NotificationIconBox>
       </EuiFlexItem>
       <EuiFlexItem

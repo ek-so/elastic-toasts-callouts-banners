@@ -33,6 +33,8 @@ export type ToastProps = {
   hideSecondaryButton?: boolean;
   /** When true, primary CTA uses filled `EuiButton` (`fill`). */
   primaryButtonFill?: boolean;
+  /** When true, status lead icon uses filled glyphs where EUI provides them. */
+  filledIcons?: boolean;
   dismissable?: boolean;
   /**
    * When set to a positive finite duration (ms), the **top** 3px accent is a determinate bar
@@ -113,6 +115,7 @@ export function Toast({
   hidePrimaryButton = false,
   hideSecondaryButton = false,
   primaryButtonFill = false,
+  filledIcons = false,
   dismissable = true,
   liveDurationMs,
   liveProgressResetKey = 0,
@@ -299,7 +302,12 @@ export function Toast({
           min-width: 0;
         `}
       >
-        <NotificationIconLead color={color} iconSlotPx={20} iconToCopyGap={euiTheme.size.m}>
+        <NotificationIconLead
+          color={color}
+          iconSlotPx={20}
+          iconToCopyGap={euiTheme.size.m}
+          statusIconFilled={filledIcons}
+        >
           <div
             css={css`
               display: flex;
