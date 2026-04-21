@@ -41,6 +41,8 @@ export type CalloutProps = {
   hidePrimaryButton?: boolean;
   /** When true, the secondary CTA is omitted. */
   hideSecondaryButton?: boolean;
+  /** When true, primary CTA uses filled `EuiButton` (`fill`). */
+  primaryButtonFill?: boolean;
   /** When false, the dismiss control is hidden and end padding is reduced (specimen chrome). */
   dismissable?: boolean;
 };
@@ -127,6 +129,7 @@ export function Callout({
   hideDescription = false,
   hidePrimaryButton = false,
   hideSecondaryButton = false,
+  primaryButtonFill = false,
   dismissable = true,
 }: CalloutProps) {
   const { euiTheme } = useEuiTheme();
@@ -400,7 +403,7 @@ export function Callout({
                         <EuiButton
                           size="s"
                           color={btnColor}
-                          fill={false}
+                          fill={primaryButtonFill}
                           fullWidth={false}
                           minWidth={false}
                           onClick={onPrimaryClick}

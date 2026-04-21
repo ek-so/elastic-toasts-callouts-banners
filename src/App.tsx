@@ -69,6 +69,7 @@ function BannerSizeSection({
   hideDescription,
   hidePrimaryButton,
   hideSecondaryButton,
+  primaryButtonFill,
   dismissable,
   onSubduedSpecimenPanel,
   specimenDescription,
@@ -79,6 +80,7 @@ function BannerSizeSection({
   hideDescription: boolean;
   hidePrimaryButton: boolean;
   hideSecondaryButton: boolean;
+  primaryButtonFill: boolean;
   dismissable: boolean;
   onSubduedSpecimenPanel: boolean;
   specimenDescription: string;
@@ -99,6 +101,7 @@ function BannerSizeSection({
             dismissable={dismissable}
             hideDescription={hideDescription}
             hidePrimaryButton={hidePrimaryButton}
+            primaryButtonFill={primaryButtonFill}
             hideSecondaryButton={hideSecondaryButton}
             layoutBreakpointPx={layoutBreakpointPx}
             onSubduedSpecimenPanel={onSubduedSpecimenPanel}
@@ -115,6 +118,7 @@ function BannerSizeSection({
           dismissable={dismissable}
           hideDescription={hideDescription}
           hidePrimaryButton={hidePrimaryButton}
+          primaryButtonFill={primaryButtonFill}
           hideSecondaryButton={hideSecondaryButton}
           layoutBreakpointPx={layoutBreakpointPx}
           onSubduedSpecimenPanel={onSubduedSpecimenPanel}
@@ -129,6 +133,7 @@ function BannerSizeSection({
           dismissable={dismissable}
           hideDescription={hideDescription}
           hidePrimaryButton={hidePrimaryButton}
+          primaryButtonFill={primaryButtonFill}
           hideSecondaryButton={hideSecondaryButton}
           layoutBreakpointPx={layoutBreakpointPx}
           onSubduedSpecimenPanel={onSubduedSpecimenPanel}
@@ -149,6 +154,7 @@ function TopicPanel({
   hideDescription,
   hidePrimaryButton,
   hideSecondaryButton,
+  primaryButtonFill,
   dismissable,
   bannersPanelMode,
   specimenDescription,
@@ -160,6 +166,7 @@ function TopicPanel({
   hideDescription: boolean;
   hidePrimaryButton: boolean;
   hideSecondaryButton: boolean;
+  primaryButtonFill: boolean;
   dismissable: boolean;
   /** Used when `topic === 'banners'`; `plain` keeps default panel + subdued banner shells. */
   bannersPanelMode: BannersPanelMode;
@@ -182,6 +189,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
               liveProgressResetKey={toastLiveResetKey}
@@ -194,6 +202,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
               liveProgressResetKey={toastLiveResetKey}
@@ -206,6 +215,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
               liveProgressResetKey={toastLiveResetKey}
@@ -218,6 +228,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               liveDurationMs={TOAST_SPECIMEN_LIVE_MS}
               liveProgressResetKey={toastLiveResetKey}
@@ -247,6 +258,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               layoutBreakpointPx={layoutBreakpointPx}
               size="m"
@@ -261,6 +273,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               layoutBreakpointPx={layoutBreakpointPx}
               size="m"
@@ -275,6 +288,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               layoutBreakpointPx={layoutBreakpointPx}
               size="m"
@@ -289,6 +303,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               layoutBreakpointPx={layoutBreakpointPx}
               size="m"
@@ -314,6 +329,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               layoutBreakpointPx={layoutBreakpointPx}
               size="s"
@@ -328,6 +344,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               layoutBreakpointPx={layoutBreakpointPx}
               size="s"
@@ -342,6 +359,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               layoutBreakpointPx={layoutBreakpointPx}
               size="s"
@@ -356,6 +374,7 @@ function TopicPanel({
               dismissable={dismissable}
               hideDescription={hideDescription}
               hidePrimaryButton={hidePrimaryButton}
+              primaryButtonFill={primaryButtonFill}
               hideSecondaryButton={hideSecondaryButton}
               layoutBreakpointPx={layoutBreakpointPx}
               size="s"
@@ -379,6 +398,7 @@ function TopicPanel({
             dismissable={dismissable}
             hideDescription={hideDescription}
             hidePrimaryButton={hidePrimaryButton}
+            primaryButtonFill={primaryButtonFill}
             hideSecondaryButton={hideSecondaryButton}
             layoutBreakpointPx={layoutBreakpointPx}
             onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
@@ -393,6 +413,7 @@ function TopicPanel({
             dismissable={dismissable}
             hideDescription={hideDescription}
             hidePrimaryButton={hidePrimaryButton}
+            primaryButtonFill={primaryButtonFill}
             hideSecondaryButton={hideSecondaryButton}
             layoutBreakpointPx={layoutBreakpointPx}
             onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
@@ -407,6 +428,7 @@ function TopicPanel({
             dismissable={dismissable}
             hideDescription={hideDescription}
             hidePrimaryButton={hidePrimaryButton}
+            primaryButtonFill={primaryButtonFill}
             hideSecondaryButton={hideSecondaryButton}
             layoutBreakpointPx={layoutBreakpointPx}
             onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
@@ -431,9 +453,14 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   const narrowBpFieldId = useId();
   const narrowBpHelpId = `${narrowBpFieldId}-help`;
   const narrowBpWarnId = `${narrowBpFieldId}-warn`;
-  const [hideDescription, setHideDescription] = useState(false);
-  const [hideSecondaryButton, setHideSecondaryButton] = useState(false);
-  const [hideBothButtons, setHideBothButtons] = useState(false);
+  /** When `true`, specimen shows body copy (switch on by default). */
+  const [showDescription, setShowDescription] = useState(true);
+  /** When `true`, specimen shows the primary CTA (switch on by default). */
+  const [showPrimaryButton, setShowPrimaryButton] = useState(true);
+  /** When `true`, specimen shows the secondary CTA (switch on by default). */
+  const [showSecondaryButton, setShowSecondaryButton] = useState(true);
+  /** When `true`, primary CTA uses filled `EuiButton`. */
+  const [filledPrimaryButton, setFilledPrimaryButton] = useState(false);
   const [dismissable, setDismissable] = useState(true);
   const [bannersPanelMode, setBannersPanelMode] = useState<BannersPanelMode>('plain');
   const [selectedTab, setSelectedTab] = useState<TopicTab>('callouts');
@@ -743,23 +770,30 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
           >
             <EuiFlexItem grow={false}>
               <EuiSwitch
-                label="Hide description"
-                checked={hideDescription}
-                onChange={(e) => setHideDescription(e.target.checked)}
+                label="Description"
+                checked={showDescription}
+                onChange={(e) => setShowDescription(e.target.checked)}
               />
             </EuiFlexItem>
             <EuiFlexItem grow={false}>
               <EuiSwitch
-                label="Hide secondary button"
-                checked={hideSecondaryButton}
-                onChange={(e) => setHideSecondaryButton(e.target.checked)}
+                label="Primary btn"
+                checked={showPrimaryButton}
+                onChange={(e) => setShowPrimaryButton(e.target.checked)}
               />
             </EuiFlexItem>
             <EuiFlexItem grow={false}>
               <EuiSwitch
-                label="Hide both buttons"
-                checked={hideBothButtons}
-                onChange={(e) => setHideBothButtons(e.target.checked)}
+                label="Filled primary btn"
+                checked={filledPrimaryButton}
+                onChange={(e) => setFilledPrimaryButton(e.target.checked)}
+              />
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <EuiSwitch
+                label="Secondary btn"
+                checked={showSecondaryButton}
+                onChange={(e) => setShowSecondaryButton(e.target.checked)}
               />
             </EuiFlexItem>
             <EuiFlexItem grow={false}>
@@ -770,7 +804,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
               />
             </EuiFlexItem>
           </EuiFlexGroup>
-          {!hideDescription ? (
+          {showDescription ? (
             <>
               <EuiSpacer size="m" />
               <EuiFormRow fullWidth label="Description">
@@ -805,9 +839,10 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
             <TopicPanel
               bannersPanelMode={bannersPanelMode}
               dismissable={dismissable}
-              hideDescription={hideDescription}
-              hidePrimaryButton={hideBothButtons}
-              hideSecondaryButton={hideBothButtons || hideSecondaryButton}
+              hideDescription={!showDescription}
+              hidePrimaryButton={!showPrimaryButton}
+              hideSecondaryButton={!showSecondaryButton}
+              primaryButtonFill={filledPrimaryButton}
               layoutBreakpointPx={narrowMaxWidthPx}
               specimenDescription={specimenCopy[selectedTab].description}
               specimenTitle={specimenCopy[selectedTab].title}

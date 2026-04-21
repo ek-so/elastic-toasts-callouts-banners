@@ -63,6 +63,8 @@ export type BannerProps = {
   hideDescription?: boolean;
   hidePrimaryButton?: boolean;
   hideSecondaryButton?: boolean;
+  /** When true, primary CTA uses filled `EuiButton` (`fill`). */
+  primaryButtonFill?: boolean;
   /** When false, the dismiss control is hidden and S/M end padding is reduced (specimen chrome). */
   dismissable?: boolean;
   /**
@@ -98,6 +100,7 @@ export function Banner({
   hideDescription = false,
   hidePrimaryButton = false,
   hideSecondaryButton = false,
+  primaryButtonFill = false,
   dismissable = true,
   onSubduedSpecimenPanel = false,
   screenshot = false,
@@ -455,7 +458,7 @@ export function Banner({
               <EuiButton
                 size={actionButtonSize}
                 color={btnColor}
-                fill={false}
+                fill={primaryButtonFill}
                 fullWidth={false}
                 minWidth={false}
                 onClick={onPrimaryClick}

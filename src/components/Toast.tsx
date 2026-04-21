@@ -31,6 +31,8 @@ export type ToastProps = {
   hideDescription?: boolean;
   hidePrimaryButton?: boolean;
   hideSecondaryButton?: boolean;
+  /** When true, primary CTA uses filled `EuiButton` (`fill`). */
+  primaryButtonFill?: boolean;
   dismissable?: boolean;
   /**
    * When set to a positive finite duration (ms), the **top** 3px accent is a determinate bar
@@ -94,7 +96,7 @@ function liveProgressTrackColor(
  * 3px top accent—solid stripe (2px radius) by default, or a live bar (`euiTheme.border.radius.small` on track + fill) when `liveDurationMs` is set—
  * absolutely positioned (not `::after`), 16px leading inset to the icon, 40px end padding for dismiss, `useEuiShadow('l')` so
  * dark mode can add the refresh-variant floating border on `::after` without conflicting.
- * Primary CTA uses base `EuiButton` (`fill={false}` / secondary prominence) + semantic `color`;
+ * Primary CTA uses base `EuiButton` (`fill` from `primaryButtonFill`, default unfilled) + semantic `color`;
  * second action is `EuiButtonEmpty` (matches EUI guidance for action hierarchy).
  */
 export function Toast({
@@ -110,6 +112,7 @@ export function Toast({
   hideDescription = false,
   hidePrimaryButton = false,
   hideSecondaryButton = false,
+  primaryButtonFill = false,
   dismissable = true,
   liveDurationMs,
   liveProgressResetKey = 0,
@@ -358,7 +361,7 @@ export function Toast({
                         <EuiButton
                           size="s"
                           color={btnColor}
-                          fill={false}
+                          fill={primaryButtonFill}
                           fullWidth={false}
                           minWidth={false}
                           onClick={onPrimaryClick}
