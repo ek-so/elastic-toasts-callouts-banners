@@ -1,25 +1,26 @@
 import { css } from '@emotion/react';
-import { EuiFlexGroup, EuiFlexItem, useEuiTheme } from '@elastic/eui';
+import { EuiFlexGroup, EuiFlexItem, EuiIcon, useEuiTheme } from '@elastic/eui';
 import type { ReactNode } from 'react';
 
 export type NotificationSemanticColor = 'success' | 'warning' | 'danger' | 'neutral';
 
-/** Art in `public/notification-icons/` (served as `/notification-icons/*.svg`); copied to `dist/notification-icons/` on `yarn build`. */
-export function notificationStatusIconSrc(color: NotificationSemanticColor): string {
-  const file =
-    color === 'success'
-      ? 'success'
-      : color === 'warning'
-        ? 'warning'
-        : color === 'danger'
-          ? 'error'
-          : 'info';
-  const publicPath =
-    typeof __webpack_public_path__ === 'string' && __webpack_public_path__ !== ''
-      ? __webpack_public_path__
-      : '/';
-  const base = publicPath.endsWith('/') ? publicPath : `${publicPath}/`;
-  return `${base}notification-icons/${file}.svg`;
+function notificationStatusIconType(color: NotificationSemanticColor): string {
+  switch (color) {
+    case 'success':
+      return 'checkCircle';
+    case 'warning':
+      return 'warning';
+    case 'danger':
+      return 'error';
+    case 'neutral':
+      return 'info';
+  }
+}
+
+function notificationStatusIconColor(
+  color: NotificationSemanticColor
+): 'success' | 'warning' | 'danger' | 'primary' {
+  return color === 'neutral' ? 'primary' : color;
 }
 
 function iconSlotCssFor(slotPx: 16 | 20) {
@@ -27,13 +28,20 @@ function iconSlotCssFor(slotPx: 16 | 20) {
     width: ${slotPx}px;
     height: ${slotPx}px;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     line-height: 0;
-    display: block;
-    object-fit: contain;
+
+    .euiIcon,
+    .euiIcon svg {
+      width: ${slotPx}px !important;
+      height: ${slotPx}px !important;
+    }
   `;
 }
 
-/** Status artwork; `slotPx` **20** for M callout / toast title row, default **16** for size-`s` callout. */
+/** Status icon (`EuiIcon`); **20×20** when `slotPx={20}` (toast + M callout), **16×16** when `slotPx={16}` (S callout). */
 export function NotificationStatusIcon({
   color,
   slotPx = 16,
@@ -42,12 +50,14 @@ export function NotificationStatusIcon({
   slotPx?: 16 | 20;
 }) {
   return (
-    <img
-      alt=""
-      src={notificationStatusIconSrc(color)}
-      css={iconSlotCssFor(slotPx)}
-      draggable={false}
-    />
+    <span css={iconSlotCssFor(slotPx)}>
+      <EuiIcon
+        type={notificationStatusIconType(color)}
+        color={notificationStatusIconColor(color)}
+        size="m"
+        aria-hidden
+      />
+    </span>
   );
 }
 
@@ -70,7 +80,8 @@ export function NotificationTitleBox({
       justifyContent="flexStart"
       css={css`
         min-width: 0;
-        column-gap: calc(${euiTheme.size.base} * 0.25);
+        /* 6px at default scale: size.base × 0.375. M callouts + toasts title row only. */
+        column-gap: calc(${euiTheme.size.base} * 0.375);
       `}
     >
       <EuiFlexItem grow={false}>
