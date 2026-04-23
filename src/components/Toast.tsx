@@ -114,7 +114,7 @@ function liveProgressFillColor(
 /**
  * Toast card aligned to Figma node 6150:6490 (Banners–toasts–callouts):
  * 3px top accent—solid stripe (2px radius) by default, or a live bar (`euiTheme.border.radius.small` on track + fill) when `liveDurationMs` is set (fill anchored inline-start, width 100%→0%, trailing edge moves right to left in LTR)—
- * absolutely positioned (not `::after`), 16px leading inset to the icon, 40px end padding for dismiss, dismiss cross **7px** from top / **`size.xs`** from right, `useEuiShadow('l')` so
+ * absolutely positioned (not `::after`), 16px leading inset to the icon, `size.xl` end padding for dismiss (32px), dismiss cross **7px** from top / **`size.xs`** from right, `useEuiShadow('l')` so
  * dark mode can add the refresh-variant floating border on `::after` without conflicting.
  * Primary CTA uses base `EuiButton` (`fill` from `primaryButtonFill`, default unfilled) + semantic `color`;
  * second action is `EuiButtonEmpty` (matches EUI guidance for action hierarchy).
@@ -148,7 +148,7 @@ export function Toast({
   /** Live progress track: uniform theme radius; fill uses `1 1 1 0` (TL, TR, BR, BL) with `border.radius.small` for the rounded corners. */
   const liveProgressRadius = euiTheme.border.radius.small;
   const shadowStyles = useEuiShadow('l', { borderAllInHighContrastMode: false });
-  const paddingEnd = dismissable ? '40px' : euiTheme.size.base;
+  const paddingEnd = dismissable ? euiTheme.size.xl : euiTheme.size.base;
   const paddingTopWithStripe = `calc(${topAccentHeight} + ${euiTheme.size.base})`;
   const showLiveProgress =
     typeof liveDurationMs === 'number' && liveDurationMs > 0 && Number.isFinite(liveDurationMs);
