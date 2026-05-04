@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import {
   EuiButton,
   EuiButtonGroup,
@@ -29,6 +29,29 @@ type TopicTab = 'toasts' | 'callouts' | 'announcements';
 type AnnouncementsPanelMode = 'plain' | 'subdued';
 
 type SpecimenCopy = { title: string; description: string };
+
+/** Min line count via `rows`; height grows with content (no inner scroll). */
+function useAutosizeTextAreaRef(value: string, syncTrigger?: unknown) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const resize = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.overflow = 'hidden';
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
+
+  useLayoutEffect(() => {
+    resize();
+  }, [value, resize, syncTrigger]);
+
+  useEffect(() => {
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [resize]);
+
+  return ref;
+}
 
 const INITIAL_SPECIMEN_COPY: Record<TopicTab, SpecimenCopy> = {
   toasts: {
@@ -494,6 +517,11 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   }));
   const [toastLiveResetKey, setToastLiveResetKey] = useState(0);
 
+  const specimenTitle = specimenCopy[selectedTab].title;
+  const specimenDescription = specimenCopy[selectedTab].description;
+  const titleTextAreaRef = useAutosizeTextAreaRef(specimenTitle);
+  const descriptionTextAreaRef = useAutosizeTextAreaRef(specimenDescription, showDescription);
+
   const commitNarrowMaxWidth = () => {
     const parsed = Number.parseInt(narrowMaxWidthDraft, 10);
     if (Number.isNaN(parsed)) {
@@ -941,9 +969,10 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
             <EuiTextArea
               fullWidth
               compressed
-              rows={2}
-              css={{ minBlockSize: `calc(${euiTheme.size.base} * 3.75)` }}
-              value={specimenCopy[selectedTab].title}
+              rows={1}
+              resize="none"
+              inputRef={titleTextAreaRef}
+              value={specimenTitle}
               onChange={(e) =>
                 setSpecimenCopy((prev) => ({
                   ...prev,
@@ -1007,9 +1036,10 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 <EuiTextArea
                   fullWidth
                   compressed
-                  rows={2}
-                  css={{ minBlockSize: `calc(${euiTheme.size.base} * 3.75)` }}
-                  value={specimenCopy[selectedTab].description}
+                  rows={3}
+                  resize="none"
+                  inputRef={descriptionTextAreaRef}
+                  value={specimenDescription}
                   onChange={(e) =>
                     setSpecimenCopy((prev) => ({
                       ...prev,
