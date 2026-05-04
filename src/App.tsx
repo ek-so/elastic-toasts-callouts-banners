@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   EuiButton,
   EuiButtonGroup,
@@ -493,12 +493,6 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   }));
   const [toastLiveResetKey, setToastLiveResetKey] = useState(0);
 
-  /**
-   * Banners only: viewport was below the super-narrow breakpoint on the last apply.
-   * Used so widening from that band into the middle viewport band selects Super narrow.
-   */
-  const bannerViewportWasBelowSuperRef = useRef(false);
-
   const commitNarrowMaxWidth = () => {
     const parsed = Number.parseInt(narrowMaxWidthDraft, 10);
     if (Number.isNaN(parsed)) {
@@ -544,43 +538,29 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
    *
    * Callouts / toasts: Wide while the viewport is under the main layout breakpoint → Narrow.
    *
-   * Banners (three-way): viewport bands by the two breakpoints — below super-narrow → Narrow;
-   * between super-narrow and main breakpoint → Super narrow when shrinking from Wide, when
-   * widening after having been below super-narrow, or when already Super narrow; otherwise
-   * Narrow stays Narrow in that band. On viewports at or above the main breakpoint, the user’s
-   * choice (including Super narrow for a centered narrow column) is left unchanged.
+   * Banners: two breakpoints — viewport ≤ super-narrow px → Super narrow; viewport ≤ main layout
+   * px and > super: only **Wide** is coerced to **Narrow** (shrinking from the wide zone); **Narrow**
+   * and **Super narrow** are left as-is (same idea as narrow on a large monitor). Above the main
+   * breakpoint, the previous mode is kept. Inclusive max-width matches the px fields.
    */
   useEffect(() => {
-    const mqNarrow = window.matchMedia(`(max-width: ${narrowMaxWidthPx - 1}px)`);
-    const mqSuperNarrow = window.matchMedia(`(max-width: ${superNarrowMaxWidthPx - 1}px)`);
+    /** Inclusive `max-width` so the toggle matches the px fields (≤N, not <N). */
+    const mqNarrow = window.matchMedia(`(max-width: ${narrowMaxWidthPx}px)`);
+    const mqSuperNarrow = window.matchMedia(`(max-width: ${superNarrowMaxWidthPx}px)`);
     const apply = () => {
-      const belowSuper = mqSuperNarrow.matches;
-      const belowNarrow = mqNarrow.matches;
+      const atOrBelowSuper = mqSuperNarrow.matches;
+      const atOrBelowNarrow = mqNarrow.matches;
 
       if (selectedTab === 'banners') {
-        const wasBelowSuper = bannerViewportWasBelowSuperRef.current;
-
-        if (belowSuper) {
-          bannerViewportWasBelowSuperRef.current = true;
-          setContentWidth(() => 'narrow');
-          return;
-        }
-
-        bannerViewportWasBelowSuperRef.current = false;
-
         setContentWidth((prev) => {
-          if (belowNarrow) {
-            if (wasBelowSuper || prev === 'wide' || prev === 'superNarrow') {
-              return 'superNarrow';
-            }
-            return 'narrow';
+          if (atOrBelowSuper) return 'superNarrow';
+          if (atOrBelowNarrow) {
+            return prev === 'wide' ? 'narrow' : prev;
           }
           return prev;
         });
         return;
       }
-
-      bannerViewportWasBelowSuperRef.current = belowSuper;
 
       setContentWidth((prev) => {
         if (prev === 'wide' && mqNarrow.matches) return 'narrow';

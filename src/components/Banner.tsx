@@ -199,6 +199,8 @@ export function Banner({
   /** Screenshot (size L only): gap between image slot and copy. */
   const leadImageRowGap = useScreenshotArt ? euiTheme.size.xl : imageLeadGap;
   const stackedLead = stackLeadMediaVertically && hasImage;
+  /** Stacked super-narrow: only L + specimen screenshot spans full width on top; other media keeps narrow/wide slot size. */
+  const stackedFullWidthScreenshotTop = stackedLead && useScreenshotArt;
   const leadRowGap = stackedLead ? euiTheme.size.l : leadImageRowGap;
   /** Cap lead copy width (75 × theme base ≈ 1200px at default scale). */
   const textBoxMaxWidth = `${euiTheme.base * 75}px`;
@@ -333,44 +335,43 @@ export function Banner({
     right: ${closeInsetInline};
   `;
 
-  const imageSlotCss = stackedLead
-    ? css`
-        width: 100%;
-        min-width: 0;
-        height: auto;
-        min-height: ${isS ? euiTheme.size.xxl : `calc(${euiTheme.size.base} * 6)`};
-        max-height: ${isL ? `calc(${euiTheme.size.base} * 12)` : `calc(${euiTheme.size.base} * 8)`};
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border-radius: ${specimenBorderRadius};
+  const imageSlotCss =
+    stackedLead && !useScreenshotArt
+      ? css`
+          width: ${imageSlotSize};
+          height: ${imageSlotSize};
+          flex-shrink: 0;
+          align-self: flex-start;
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          overflow: hidden;
+          border-radius: ${specimenBorderRadius};
 
-        img,
-        svg {
-          max-width: 100%;
-          max-height: 100%;
-          object-fit: contain;
-        }
-      `
-    : css`
-        width: ${imageSlotSize};
-        height: ${imageSlotSize};
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border-radius: ${specimenBorderRadius};
+          img,
+          svg {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+          }
+        `
+      : css`
+          width: ${imageSlotSize};
+          height: ${imageSlotSize};
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          border-radius: ${specimenBorderRadius};
 
-        img,
-        svg {
-          max-width: 100%;
-          max-height: 100%;
-          object-fit: contain;
-        }
-      `;
+          img,
+          svg {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+          }
+        `;
 
   const actionsWideColumnCss = stackedLead
     ? css``
@@ -561,7 +562,7 @@ export function Banner({
             {useScreenshotArt ? (
               <BannerScreenshot
                 data-slot={notificationSlots.imageBox}
-                mediaStackedLayout={stackedLead}
+                mediaStackedLayout={stackedFullWidthScreenshotTop}
               />
             ) : (
               <div data-slot={notificationSlots.imageBox} css={imageSlotCss}>
