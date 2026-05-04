@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import {
   EuiButton,
   EuiButtonGroup,
@@ -50,10 +50,14 @@ const INITIAL_SPECIMEN_COPY: Record<TopicTab, SpecimenCopy> = {
 
 export type AppColorMode = 'LIGHT' | 'DARK';
 
-export type AppContentWidth = 'narrow' | 'wide';
+export type AppContentWidth = 'narrow' | 'wide' | 'superNarrow';
 
 const DEFAULT_NARROW_MAX_WIDTH_PX = 1000;
 const MIN_NARROW_MAX_WIDTH_PX = 600;
+
+/** Banners tab only: tighter column + banner `layoutBreakpointPx`; default width matches breakpoint. */
+const DEFAULT_SUPER_NARROW_MAX_WIDTH_PX = 600;
+const MIN_SUPER_NARROW_MAX_WIDTH_PX = 280;
 
 /** Toast specimens only: top-accent live countdown vs auto-dismiss (see Figma Banners–toasts–callouts). */
 const TOAST_SPECIMEN_LIVE_MS = 15_000;
@@ -445,6 +449,9 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   const narrowBpFieldId = useId();
   const narrowBpHelpId = `${narrowBpFieldId}-help`;
   const narrowBpWarnId = `${narrowBpFieldId}-warn`;
+  const superNarrowBpFieldId = useId();
+  const superNarrowBpHelpId = `${superNarrowBpFieldId}-help`;
+  const superNarrowBpWarnId = `${superNarrowBpFieldId}-warn`;
   /** When `true`, specimen shows body copy (switch on by default). */
   const [showDescription, setShowDescription] = useState(true);
   /** When `true`, specimen shows primary and secondary CTAs (switch on by default). */
@@ -462,12 +469,24 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   const [narrowMaxWidthDraft, setNarrowMaxWidthDraft] = useState(
     String(DEFAULT_NARROW_MAX_WIDTH_PX)
   );
+  const [superNarrowMaxWidthPx, setSuperNarrowMaxWidthPx] = useState(
+    DEFAULT_SUPER_NARROW_MAX_WIDTH_PX
+  );
+  const [superNarrowMaxWidthDraft, setSuperNarrowMaxWidthDraft] = useState(
+    String(DEFAULT_SUPER_NARROW_MAX_WIDTH_PX)
+  );
   const [specimenCopy, setSpecimenCopy] = useState<Record<TopicTab, SpecimenCopy>>(() => ({
     toasts: { ...INITIAL_SPECIMEN_COPY.toasts },
     callouts: { ...INITIAL_SPECIMEN_COPY.callouts },
     banners: { ...INITIAL_SPECIMEN_COPY.banners },
   }));
   const [toastLiveResetKey, setToastLiveResetKey] = useState(0);
+
+  /**
+   * Banners only: viewport was below the super-narrow breakpoint on the last apply.
+   * Used so widening from that band into the middle viewport band selects Super narrow.
+   */
+  const bannerViewportWasBelowSuperRef = useRef(false);
 
   const commitNarrowMaxWidth = () => {
     const parsed = Number.parseInt(narrowMaxWidthDraft, 10);
@@ -480,6 +499,17 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
     setNarrowMaxWidthDraft(String(clamped));
   };
 
+  const commitSuperNarrowMaxWidth = () => {
+    const parsed = Number.parseInt(superNarrowMaxWidthDraft, 10);
+    if (Number.isNaN(parsed)) {
+      setSuperNarrowMaxWidthDraft(String(superNarrowMaxWidthPx));
+      return;
+    }
+    const clamped = Math.max(MIN_SUPER_NARROW_MAX_WIDTH_PX, parsed);
+    setSuperNarrowMaxWidthPx(clamped);
+    setSuperNarrowMaxWidthDraft(String(clamped));
+  };
+
   const narrowBpDraftTrim = narrowMaxWidthDraft.trim();
   const narrowBpParsed = Number.parseInt(narrowBpDraftTrim, 10);
   const narrowBpHasInt = !Number.isNaN(narrowBpParsed);
@@ -489,24 +519,96 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
     narrowBpParsed < MIN_NARROW_MAX_WIDTH_PX &&
     narrowBpDraftTrim.length >= narrowBpMinDigits;
 
+  const superNarrowBpDraftTrim = superNarrowMaxWidthDraft.trim();
+  const superNarrowBpParsed = Number.parseInt(superNarrowBpDraftTrim, 10);
+  const superNarrowBpHasInt = !Number.isNaN(superNarrowBpParsed);
+  const superNarrowBpMinDigits = String(MIN_SUPER_NARROW_MAX_WIDTH_PX).length;
+  const superNarrowBpTooLow =
+    superNarrowBpHasInt &&
+    superNarrowBpParsed < MIN_SUPER_NARROW_MAX_WIDTH_PX &&
+    superNarrowBpDraftTrim.length >= superNarrowBpMinDigits;
+
+  /**
+   * Keep the content-width toggle in sync with the viewport.
+   *
+   * Callouts / toasts: Wide while the viewport is under the main layout breakpoint → Narrow.
+   *
+   * Banners (three-way): viewport bands by the two breakpoints — below super-narrow → Narrow;
+   * between super-narrow and main breakpoint → Super narrow when shrinking from Wide, when
+   * widening after having been below super-narrow, or when already Super narrow; otherwise
+   * Narrow can stay Narrow in that band; at or above the main breakpoint, Super narrow → Wide.
+   */
   useEffect(() => {
-    const query = `(max-width: ${narrowMaxWidthPx - 1}px)`;
-    const mq = window.matchMedia(query);
+    const mqNarrow = window.matchMedia(`(max-width: ${narrowMaxWidthPx - 1}px)`);
+    const mqSuperNarrow = window.matchMedia(`(max-width: ${superNarrowMaxWidthPx - 1}px)`);
     const apply = () => {
-      if (mq.matches) {
-        setContentWidth('narrow');
+      const belowSuper = mqSuperNarrow.matches;
+      const belowNarrow = mqNarrow.matches;
+
+      if (selectedTab === 'banners') {
+        const wasBelowSuper = bannerViewportWasBelowSuperRef.current;
+
+        if (belowSuper) {
+          bannerViewportWasBelowSuperRef.current = true;
+          setContentWidth(() => 'narrow');
+          return;
+        }
+
+        bannerViewportWasBelowSuperRef.current = false;
+
+        setContentWidth((prev) => {
+          if (belowNarrow) {
+            if (wasBelowSuper || prev === 'wide' || prev === 'superNarrow') {
+              return 'superNarrow';
+            }
+            return 'narrow';
+          }
+          if (prev === 'superNarrow') {
+            return 'wide';
+          }
+          return prev;
+        });
+        return;
       }
+
+      bannerViewportWasBelowSuperRef.current = belowSuper;
+
+      setContentWidth((prev) => {
+        if (prev === 'wide' && mqNarrow.matches) return 'narrow';
+        return prev;
+      });
     };
     apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, [narrowMaxWidthPx]);
+    mqNarrow.addEventListener('change', apply);
+    mqSuperNarrow.addEventListener('change', apply);
+    return () => {
+      mqNarrow.removeEventListener('change', apply);
+      mqSuperNarrow.removeEventListener('change', apply);
+    };
+  }, [narrowMaxWidthPx, superNarrowMaxWidthPx, contentWidth, selectedTab]);
+
+  useEffect(() => {
+    if (selectedTab !== 'banners' && contentWidth === 'superNarrow') {
+      setContentWidth('narrow');
+    }
+  }, [selectedTab, contentWidth]);
+
+  /** Super narrow is banners-only; treat as narrow for layout until state is coerced. */
+  const resolvedContentWidth: AppContentWidth =
+    selectedTab !== 'banners' && contentWidth === 'superNarrow' ? 'narrow' : contentWidth;
+
+  const pageMaxWidthPx =
+    resolvedContentWidth === 'superNarrow'
+      ? superNarrowMaxWidthPx
+      : resolvedContentWidth === 'narrow'
+        ? narrowMaxWidthPx
+        : null;
 
   const pageFrame =
-    contentWidth === 'narrow'
+    pageMaxWidthPx !== null
       ? {
           width: '100%',
-          maxWidth: `${narrowMaxWidthPx}px`,
+          maxWidth: `${pageMaxWidthPx}px`,
           margin: '0 auto' as const,
           boxSizing: 'border-box' as const,
           paddingLeft: euiTheme.size.l,
@@ -519,6 +621,26 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
           paddingLeft: euiTheme.size.l,
           paddingRight: euiTheme.size.l,
         };
+
+  const bannerLayoutBreakpointPx =
+    selectedTab === 'banners' && resolvedContentWidth === 'superNarrow'
+      ? superNarrowMaxWidthPx
+      : narrowMaxWidthPx;
+
+  const showSuperNarrowBpField =
+    selectedTab === 'banners' && resolvedContentWidth === 'superNarrow';
+
+  const contentWidthButtonOptions =
+    selectedTab === 'banners'
+      ? [
+          { id: 'superNarrow' as const, label: 'Super narrow' },
+          { id: 'narrow' as const, label: 'Narrow' },
+          { id: 'wide' as const, label: 'Wide' },
+        ]
+      : [
+          { id: 'narrow' as const, label: 'Narrow' },
+          { id: 'wide' as const, label: 'Wide' },
+        ];
 
   return (
     <div
@@ -622,49 +744,154 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 type="single"
                 buttonSize="s"
                 color="text"
-                idSelected={contentWidth === 'narrow' ? 'narrow' : 'wide'}
-                onChange={(id) => setContentWidth(id === 'narrow' ? 'narrow' : 'wide')}
-                options={[
-                  { id: 'narrow', label: 'Narrow' },
-                  { id: 'wide', label: 'Wide' },
-                ]}
+                idSelected={resolvedContentWidth}
+                onChange={(id) =>
+                  setContentWidth(
+                    id === 'wide' ? 'wide' : id === 'superNarrow' ? 'superNarrow' : 'narrow'
+                  )
+                }
+                options={contentWidthButtonOptions}
               />
             </EuiFlexItem>
             <EuiFlexItem grow={false}>
-              <EuiScreenReaderOnly>
-                <span id={narrowBpHelpId}>
-                  Narrow column max width in pixels; viewport narrower than this width forces narrow
-                  layout. Minimum {MIN_NARROW_MAX_WIDTH_PX} px.
-                </span>
-              </EuiScreenReaderOnly>
-              {narrowBpTooLow ? (
-                <EuiScreenReaderOnly>
-                  <span id={narrowBpWarnId}>
-                    Value is below the minimum of {MIN_NARROW_MAX_WIDTH_PX} px.
-                  </span>
-                </EuiScreenReaderOnly>
-              ) : null}
-              {narrowBpTooLow ? (
-                <EuiToolTip
-                  content={`Use at least ${MIN_NARROW_MAX_WIDTH_PX} px.`}
-                  position="top"
-                  title="Layout breakpoint"
-                >
-                  <span css={{ display: 'inline-flex' }}>
+              {showSuperNarrowBpField ? (
+                <>
+                  <EuiScreenReaderOnly>
+                    <span id={superNarrowBpHelpId}>
+                      Banners super-narrow column max width in pixels; viewport narrower than this
+                      width switches to standard narrow. Minimum {MIN_SUPER_NARROW_MAX_WIDTH_PX}{' '}
+                      px.
+                    </span>
+                  </EuiScreenReaderOnly>
+                  {superNarrowBpTooLow ? (
+                    <EuiScreenReaderOnly>
+                      <span id={superNarrowBpWarnId}>
+                        Value is below the minimum of {MIN_SUPER_NARROW_MAX_WIDTH_PX} px.
+                      </span>
+                    </EuiScreenReaderOnly>
+                  ) : null}
+                  {superNarrowBpTooLow ? (
+                    <EuiToolTip
+                      content={`Use at least ${MIN_SUPER_NARROW_MAX_WIDTH_PX} px.`}
+                      position="top"
+                      title="Super narrow breakpoint"
+                    >
+                      <span css={{ display: 'inline-flex' }}>
+                        <EuiFieldNumber
+                          compressed
+                          append={
+                            <span
+                              css={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                alignSelf: 'stretch',
+                              }}
+                            >
+                              <EuiIcon aria-hidden type="warning" color="warning" />
+                            </span>
+                          }
+                          aria-describedby={`${superNarrowBpHelpId} ${superNarrowBpWarnId}`}
+                          aria-label="Super narrow layout breakpoint"
+                          id={superNarrowBpFieldId}
+                          placeholder="Super narrow"
+                          value={superNarrowMaxWidthDraft}
+                          css={{
+                            inlineSize: `calc(${euiTheme.size.base} * 7.5)`,
+                            maxInlineSize: `calc(${euiTheme.size.base} * 7.5)`,
+                            minInlineSize: 0,
+                          }}
+                          onBlur={commitSuperNarrowMaxWidth}
+                          onChange={(e) => setSuperNarrowMaxWidthDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              (e.target as HTMLInputElement).blur();
+                            }
+                          }}
+                        />
+                      </span>
+                    </EuiToolTip>
+                  ) : (
                     <EuiFieldNumber
                       compressed
-                      append={
-                        <span
+                      aria-describedby={superNarrowBpHelpId}
+                      aria-label="Super narrow layout breakpoint"
+                      id={superNarrowBpFieldId}
+                      placeholder="Super narrow"
+                      value={superNarrowMaxWidthDraft}
+                      css={{
+                        inlineSize: `calc(${euiTheme.size.base} * 7.5)`,
+                        maxInlineSize: `calc(${euiTheme.size.base} * 7.5)`,
+                        minInlineSize: 0,
+                      }}
+                      onBlur={commitSuperNarrowMaxWidth}
+                      onChange={(e) => setSuperNarrowMaxWidthDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          (e.target as HTMLInputElement).blur();
+                        }
+                      }}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <EuiScreenReaderOnly>
+                    <span id={narrowBpHelpId}>
+                      Narrow column max width in pixels; viewport narrower than this width forces
+                      narrow layout. Minimum {MIN_NARROW_MAX_WIDTH_PX} px.
+                    </span>
+                  </EuiScreenReaderOnly>
+                  {narrowBpTooLow ? (
+                    <EuiScreenReaderOnly>
+                      <span id={narrowBpWarnId}>
+                        Value is below the minimum of {MIN_NARROW_MAX_WIDTH_PX} px.
+                      </span>
+                    </EuiScreenReaderOnly>
+                  ) : null}
+                  {narrowBpTooLow ? (
+                    <EuiToolTip
+                      content={`Use at least ${MIN_NARROW_MAX_WIDTH_PX} px.`}
+                      position="top"
+                      title="Layout breakpoint"
+                    >
+                      <span css={{ display: 'inline-flex' }}>
+                        <EuiFieldNumber
+                          compressed
+                          append={
+                            <span
+                              css={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                alignSelf: 'stretch',
+                              }}
+                            >
+                              <EuiIcon aria-hidden type="warning" color="warning" />
+                            </span>
+                          }
+                          aria-describedby={`${narrowBpHelpId} ${narrowBpWarnId}`}
+                          aria-label="Layout breakpoint"
+                          id={narrowBpFieldId}
+                          placeholder="Layout breakpoint"
+                          value={narrowMaxWidthDraft}
                           css={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            alignSelf: 'stretch',
+                            inlineSize: `calc(${euiTheme.size.base} * 7.5)`,
+                            maxInlineSize: `calc(${euiTheme.size.base} * 7.5)`,
+                            minInlineSize: 0,
                           }}
-                        >
-                          <EuiIcon aria-hidden type="warning" color="warning" />
-                        </span>
-                      }
-                      aria-describedby={`${narrowBpHelpId} ${narrowBpWarnId}`}
+                          onBlur={commitNarrowMaxWidth}
+                          onChange={(e) => setNarrowMaxWidthDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              (e.target as HTMLInputElement).blur();
+                            }
+                          }}
+                        />
+                      </span>
+                    </EuiToolTip>
+                  ) : (
+                    <EuiFieldNumber
+                      compressed
+                      aria-describedby={narrowBpHelpId}
                       aria-label="Layout breakpoint"
                       id={narrowBpFieldId}
                       placeholder="Layout breakpoint"
@@ -682,29 +909,8 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                         }
                       }}
                     />
-                  </span>
-                </EuiToolTip>
-              ) : (
-                <EuiFieldNumber
-                  compressed
-                  aria-describedby={narrowBpHelpId}
-                  aria-label="Layout breakpoint"
-                  id={narrowBpFieldId}
-                  placeholder="Layout breakpoint"
-                  value={narrowMaxWidthDraft}
-                  css={{
-                    inlineSize: `calc(${euiTheme.size.base} * 7.5)`,
-                    maxInlineSize: `calc(${euiTheme.size.base} * 7.5)`,
-                    minInlineSize: 0,
-                  }}
-                  onBlur={commitNarrowMaxWidth}
-                  onChange={(e) => setNarrowMaxWidthDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      (e.target as HTMLInputElement).blur();
-                    }
-                  }}
-                />
+                  )}
+                </>
               )}
             </EuiFlexItem>
             {selectedTab === 'banners' ? (
@@ -852,7 +1058,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 !showActionButtons || selectedTab === 'toasts' || !showSecondaryButton
               }
               primaryButtonFill={selectedTab === 'banners' ? filledPrimaryButton : false}
-              layoutBreakpointPx={narrowMaxWidthPx}
+              layoutBreakpointPx={bannerLayoutBreakpointPx}
               specimenDescription={specimenCopy[selectedTab].description}
               specimenTitle={specimenCopy[selectedTab].title}
               toastLiveResetKey={toastLiveResetKey}
