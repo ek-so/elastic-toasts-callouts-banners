@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "webpack serve --mode development",
-    "build": "tsc --noEmit && webpack --mode production && mkdir -p dist/banners dist/notification-icons && cp public/banners/* dist/banners/ && cp public/notification-icons/* dist/notification-icons/",
+    "build": "tsc --noEmit && webpack --mode production && mkdir -p dist/announcements dist/notification-icons && cp public/announcements/* dist/announcements/ && cp public/notification-icons/* dist/notification-icons/",
     "preview": "serve dist -l 4173"
   },
   "dependencies": {

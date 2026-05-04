@@ -1,9 +1,9 @@
 /**
- * Stable layout region markers for banner / callout / toast specimens.
+ * Stable layout region markers for announcement / callout / toast specimens.
  * Use on the outer `div` of each region so structure is obvious in DOM and tests.
  */
 export const notificationSlots = {
-  /** Outermost banner / callout / toast surface (border, padding, stripe, etc.). */
+  /** Outermost announcement / callout / toast surface (border, padding, stripe, etc.). */
   root: 'notification-root',
   /** Padded frame around the semantic status icon (callout + toast). */
   iconBox: 'notification-icon-box',

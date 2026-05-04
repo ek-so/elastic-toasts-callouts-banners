@@ -112,7 +112,7 @@ function liveProgressFillColor(
 }
 
 /**
- * Toast card aligned to Figma node 6150:6490 (Banners–toasts–callouts):
+ * Toast card aligned to Figma node 6150:6490 (Announcements–toasts–callouts):
  * 3px top accent—solid stripe (4px radius) by default, or a live bar (`euiTheme.border.radius.small` on track + fill) when `liveDurationMs` is set (fill anchored inline-start, width 100%→0%, trailing edge moves right to left in LTR)—
  * absolutely positioned (not `::after`), 16px leading inset to the icon, `size.xl` end padding for dismiss (32px), dismiss cross **`size.s`** from top and right (~8px at default scale), `useEuiShadow('l')` so
  * dark mode can add the refresh-variant floating border on `::after` without conflicting.

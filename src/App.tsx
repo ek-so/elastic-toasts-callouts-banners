@@ -19,14 +19,14 @@ import {
   useEuiTheme,
 } from '@elastic/eui';
 
-import { Banner, type BannerSize } from './components/Banner';
+import { Announcement, type AnnouncementSize } from './components/Announcement';
 import { Callout } from './components/Callout';
 import { Toast } from './components/Toast';
 
-type TopicTab = 'toasts' | 'callouts' | 'banners';
+type TopicTab = 'toasts' | 'callouts' | 'announcements';
 
-/** Banners tab only: panel fill vs banner shell fill for subdued specimen context. */
-type BannersPanelMode = 'plain' | 'subdued';
+/** Announcements tab only: panel fill vs announcement shell fill for subdued specimen context. */
+type AnnouncementsPanelMode = 'plain' | 'subdued';
 
 type SpecimenCopy = { title: string; description: string };
 
@@ -41,10 +41,10 @@ const INITIAL_SPECIMEN_COPY: Record<TopicTab, SpecimenCopy> = {
     description:
       'Shared callout body for size M and S in every color—check stripe, borders, and wide layout at the breakpoint.',
   },
-  banners: {
-    title: 'Banner title',
+  announcements: {
+    title: 'Announcement title',
     description:
-      'Shared banner body for S, M, and L (vector art or optional L-only screenshot)—stress-wrap in narrow columns, wide rows at the layout breakpoint so line length and action alignment are easy to compare.',
+      'Shared announcement body for S, M, and L (vector art or optional L-only screenshot)—stress-wrap in narrow columns, wide rows at the layout breakpoint so line length and action alignment are easy to compare.',
   },
 };
 
@@ -55,19 +55,19 @@ export type AppContentWidth = 'narrow' | 'wide' | 'superNarrow';
 const DEFAULT_NARROW_MAX_WIDTH_PX = 1000;
 const MIN_NARROW_MAX_WIDTH_PX = 600;
 
-/** Banners tab only: tighter column + banner `layoutBreakpointPx`; default width matches breakpoint. */
+/** Announcements tab only: tighter column + announcement `layoutBreakpointPx`; default width matches breakpoint. */
 const DEFAULT_SUPER_NARROW_MAX_WIDTH_PX = 600;
 const MIN_SUPER_NARROW_MAX_WIDTH_PX = 280;
 
-/** Toast specimens only: top-accent live countdown vs auto-dismiss (see Figma Banners–toasts–callouts). */
+/** Toast specimens only: top-accent live countdown vs auto-dismiss (see Figma Announcements–toasts–callouts). */
 const TOAST_SPECIMEN_LIVE_MS = 15_000;
 
 /** Label above each specimen row, aligned with callouts (`Size M`, `Size S`, …). */
-function specimenSizeLabel(size: BannerSize): string {
+function specimenSizeLabel(size: AnnouncementSize): string {
   return `Size ${size.toUpperCase()}`;
 }
 
-function BannerSizeSection({
+function AnnouncementSizeSection({
   size,
   layoutBreakpointPx,
   stackLeadMediaVertically,
@@ -81,9 +81,9 @@ function BannerSizeSection({
   specimenTitle,
   screenshotPaddings,
 }: {
-  size: BannerSize;
+  size: AnnouncementSize;
   layoutBreakpointPx: number;
-  /** Banners super-narrow: media row on top, copy and actions below. */
+  /** Announcements super-narrow: media row on top, copy and actions below. */
   stackLeadMediaVertically: boolean;
   hideDescription: boolean;
   hidePrimaryButton: boolean;
@@ -106,7 +106,7 @@ function BannerSizeSection({
       </EuiFlexItem>
       {size === 'l' ? (
         <EuiFlexItem grow={false}>
-          <Banner
+          <Announcement
             dismissable={dismissable}
             hideDescription={hideDescription}
             hidePrimaryButton={hidePrimaryButton}
@@ -121,11 +121,11 @@ function BannerSizeSection({
             title={specimenTitle}
           >
             {specimenDescription}
-          </Banner>
+          </Announcement>
         </EuiFlexItem>
       ) : null}
       <EuiFlexItem grow={false}>
-        <Banner
+        <Announcement
           dismissable={dismissable}
           hideDescription={hideDescription}
           hidePrimaryButton={hidePrimaryButton}
@@ -138,7 +138,7 @@ function BannerSizeSection({
           title={specimenTitle}
         >
           {specimenDescription}
-        </Banner>
+        </Announcement>
       </EuiFlexItem>
     </>
   );
@@ -147,13 +147,13 @@ function BannerSizeSection({
 function TopicPanel({
   topic,
   layoutBreakpointPx,
-  stackBannerLeadMediaVertically,
+  stackAnnouncementLeadMediaVertically,
   hideDescription,
   hidePrimaryButton,
   hideSecondaryButton,
   primaryButtonFill,
   dismissable,
-  bannersPanelMode,
+  announcementsPanelMode,
   specimenDescription,
   specimenTitle,
   toastLiveResetKey,
@@ -161,15 +161,15 @@ function TopicPanel({
 }: {
   topic: TopicTab;
   layoutBreakpointPx: number;
-  /** Banners super-narrow: `Banner` stacks lead media above copy and actions. */
-  stackBannerLeadMediaVertically: boolean;
+  /** Announcements super-narrow: `Announcement` stacks lead media above copy and actions. */
+  stackAnnouncementLeadMediaVertically: boolean;
   hideDescription: boolean;
   hidePrimaryButton: boolean;
   hideSecondaryButton: boolean;
   primaryButtonFill: boolean;
   dismissable: boolean;
-  /** Used when `topic === 'banners'`; `plain` keeps default panel + subdued banner shells. */
-  bannersPanelMode: BannersPanelMode;
+  /** Used when `topic === 'announcements'`; `plain` keeps default panel + subdued announcement shells. */
+  announcementsPanelMode: AnnouncementsPanelMode;
   specimenDescription: string;
   specimenTitle: string;
   /** Passed to toast specimens so “Reset progress” can restart the top live bar. */
@@ -387,7 +387,7 @@ function TopicPanel({
           </EuiFlexItem>
         </EuiFlexGroup>
       );
-    case 'banners':
+    case 'announcements':
       return (
         <EuiFlexGroup
           direction="column"
@@ -395,53 +395,53 @@ function TopicPanel({
           alignItems="stretch"
           css={{ maxWidth: '100%' }}
         >
-          <BannerSizeSection
+          <AnnouncementSizeSection
             dismissable={dismissable}
             hideDescription={hideDescription}
             hidePrimaryButton={hidePrimaryButton}
             primaryButtonFill={primaryButtonFill}
             hideSecondaryButton={hideSecondaryButton}
             layoutBreakpointPx={layoutBreakpointPx}
-            onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
+            onSubduedSpecimenPanel={announcementsPanelMode === 'subdued'}
             specimenDescription={specimenDescription}
             specimenTitle={specimenTitle}
             screenshotPaddings={screenshotPaddings}
             size="l"
-            stackLeadMediaVertically={stackBannerLeadMediaVertically}
+            stackLeadMediaVertically={stackAnnouncementLeadMediaVertically}
           />
           <EuiFlexItem grow={false}>
             <EuiSpacer size="l" />
           </EuiFlexItem>
-          <BannerSizeSection
+          <AnnouncementSizeSection
             dismissable={dismissable}
             hideDescription={hideDescription}
             hidePrimaryButton={hidePrimaryButton}
             primaryButtonFill={primaryButtonFill}
             hideSecondaryButton={hideSecondaryButton}
             layoutBreakpointPx={layoutBreakpointPx}
-            onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
+            onSubduedSpecimenPanel={announcementsPanelMode === 'subdued'}
             specimenDescription={specimenDescription}
             specimenTitle={specimenTitle}
             screenshotPaddings={screenshotPaddings}
             size="m"
-            stackLeadMediaVertically={stackBannerLeadMediaVertically}
+            stackLeadMediaVertically={stackAnnouncementLeadMediaVertically}
           />
           <EuiFlexItem grow={false}>
             <EuiSpacer size="l" />
           </EuiFlexItem>
-          <BannerSizeSection
+          <AnnouncementSizeSection
             dismissable={dismissable}
             hideDescription={hideDescription}
             hidePrimaryButton={hidePrimaryButton}
             primaryButtonFill={primaryButtonFill}
             hideSecondaryButton={hideSecondaryButton}
             layoutBreakpointPx={layoutBreakpointPx}
-            onSubduedSpecimenPanel={bannersPanelMode === 'subdued'}
+            onSubduedSpecimenPanel={announcementsPanelMode === 'subdued'}
             specimenDescription={specimenDescription}
             specimenTitle={specimenTitle}
             screenshotPaddings={screenshotPaddings}
             size="s"
-            stackLeadMediaVertically={stackBannerLeadMediaVertically}
+            stackLeadMediaVertically={stackAnnouncementLeadMediaVertically}
           />
         </EuiFlexGroup>
       );
@@ -467,13 +467,14 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   const [showDescription, setShowDescription] = useState(true);
   /** When `true`, specimen shows primary and secondary CTAs (switch on by default). */
   const [showActionButtons, setShowActionButtons] = useState(true);
-  /** When `true` and action buttons are on, specimen shows the secondary CTA (callouts and banners; toasts never show a secondary CTA). */
+  /** When `true` and action buttons are on, specimen shows the secondary CTA (callouts and announcements; toasts never show a secondary CTA). */
   const [showSecondaryButton, setShowSecondaryButton] = useState(true);
   /** When `true`, primary CTA uses filled `EuiButton`. */
   const [filledPrimaryButton, setFilledPrimaryButton] = useState(false);
   const [dismissable, setDismissable] = useState(true);
   const [screenshotPaddings, setScreenshotPaddings] = useState(false);
-  const [bannersPanelMode, setBannersPanelMode] = useState<BannersPanelMode>('plain');
+  const [announcementsPanelMode, setAnnouncementsPanelMode] =
+    useState<AnnouncementsPanelMode>('plain');
   const [selectedTab, setSelectedTab] = useState<TopicTab>('callouts');
   const [contentWidth, setContentWidth] = useState<AppContentWidth>('narrow');
   const [narrowMaxWidthPx, setNarrowMaxWidthPx] = useState(DEFAULT_NARROW_MAX_WIDTH_PX);
@@ -489,7 +490,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   const [specimenCopy, setSpecimenCopy] = useState<Record<TopicTab, SpecimenCopy>>(() => ({
     toasts: { ...INITIAL_SPECIMEN_COPY.toasts },
     callouts: { ...INITIAL_SPECIMEN_COPY.callouts },
-    banners: { ...INITIAL_SPECIMEN_COPY.banners },
+    announcements: { ...INITIAL_SPECIMEN_COPY.announcements },
   }));
   const [toastLiveResetKey, setToastLiveResetKey] = useState(0);
 
@@ -538,7 +539,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
    *
    * Callouts / toasts: Wide while the viewport is under the main layout breakpoint → Narrow.
    *
-   * Banners: two breakpoints — viewport ≤ super-narrow px → Super narrow; viewport ≤ main layout
+   * Announcements: two breakpoints — viewport ≤ super-narrow px → Super narrow; viewport ≤ main layout
    * px and > super: only **Wide** is coerced to **Narrow** (shrinking from the wide zone); **Narrow**
    * and **Super narrow** are left as-is (same idea as narrow on a large monitor). Above the main
    * breakpoint, the previous mode is kept. Inclusive max-width matches the px fields.
@@ -551,7 +552,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
       const atOrBelowSuper = mqSuperNarrow.matches;
       const atOrBelowNarrow = mqNarrow.matches;
 
-      if (selectedTab === 'banners') {
+      if (selectedTab === 'announcements') {
         setContentWidth((prev) => {
           if (atOrBelowSuper) return 'superNarrow';
           if (atOrBelowNarrow) {
@@ -577,14 +578,14 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
   }, [narrowMaxWidthPx, superNarrowMaxWidthPx, contentWidth, selectedTab]);
 
   useEffect(() => {
-    if (selectedTab !== 'banners' && contentWidth === 'superNarrow') {
+    if (selectedTab !== 'announcements' && contentWidth === 'superNarrow') {
       setContentWidth('narrow');
     }
   }, [selectedTab, contentWidth]);
 
-  /** Super narrow is banners-only; treat as narrow for layout until state is coerced. */
+  /** Super narrow is announcements-only; treat as narrow for layout until state is coerced. */
   const resolvedContentWidth: AppContentWidth =
-    selectedTab !== 'banners' && contentWidth === 'superNarrow' ? 'narrow' : contentWidth;
+    selectedTab !== 'announcements' && contentWidth === 'superNarrow' ? 'narrow' : contentWidth;
 
   const pageMaxWidthPx =
     resolvedContentWidth === 'superNarrow'
@@ -611,19 +612,19 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
           paddingRight: euiTheme.size.l,
         };
 
-  const bannerLayoutBreakpointPx =
-    selectedTab === 'banners' && resolvedContentWidth === 'superNarrow'
+  const announcementLayoutBreakpointPx =
+    selectedTab === 'announcements' && resolvedContentWidth === 'superNarrow'
       ? superNarrowMaxWidthPx
       : narrowMaxWidthPx;
 
-  const stackBannerLeadMediaVertically =
-    selectedTab === 'banners' && resolvedContentWidth === 'superNarrow';
+  const stackAnnouncementLeadMediaVertically =
+    selectedTab === 'announcements' && resolvedContentWidth === 'superNarrow';
 
   const showSuperNarrowBpField =
-    selectedTab === 'banners' && resolvedContentWidth === 'superNarrow';
+    selectedTab === 'announcements' && resolvedContentWidth === 'superNarrow';
 
   const contentWidthButtonOptions =
-    selectedTab === 'banners'
+    selectedTab === 'announcements'
       ? [
           { id: 'superNarrow' as const, label: 'Super narrow' },
           { id: 'narrow' as const, label: 'Narrow' },
@@ -673,12 +674,12 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
               Callouts
             </EuiTab>
             <EuiTab
-              id="banners-tab"
+              id="announcements-tab"
               aria-controls="topic-panel"
-              isSelected={selectedTab === 'banners'}
-              onClick={() => setSelectedTab('banners')}
+              isSelected={selectedTab === 'announcements'}
+              onClick={() => setSelectedTab('announcements')}
             >
-              Banners
+              Announcements
             </EuiTab>
             <EuiTab
               id="toasts-tab"
@@ -750,7 +751,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 <>
                   <EuiScreenReaderOnly>
                     <span id={superNarrowBpHelpId}>
-                      Banners super-narrow column max width in pixels; viewport narrower than this
+                      Announcements super-narrow column max width in pixels; viewport narrower than this
                       width switches to standard narrow. Minimum {MIN_SUPER_NARROW_MAX_WIDTH_PX}{' '}
                       px.
                     </span>
@@ -905,15 +906,15 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 </>
               )}
             </EuiFlexItem>
-            {selectedTab === 'banners' ? (
+            {selectedTab === 'announcements' ? (
               <EuiFlexItem grow={false}>
                 <EuiButtonGroup
-                  legend="Banner specimen panel"
+                  legend="Announcement specimen panel"
                   type="single"
                   buttonSize="s"
                   color="text"
-                  idSelected={bannersPanelMode}
-                  onChange={(id) => setBannersPanelMode(id as BannersPanelMode)}
+                  idSelected={announcementsPanelMode}
+                  onChange={(id) => setAnnouncementsPanelMode(id as AnnouncementsPanelMode)}
                   options={[
                     { id: 'plain', label: 'Plain' },
                     { id: 'subdued', label: 'Subdued' },
@@ -982,7 +983,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
                 />
               </EuiFlexItem>
             ) : null}
-            {showActionButtons && selectedTab === 'banners' ? (
+            {showActionButtons && selectedTab === 'announcements' ? (
               <EuiFlexItem grow={false}>
                 <EuiSwitch
                   label="Filled primary btn"
@@ -1019,7 +1020,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
               </EuiFormRow>
             </>
           ) : null}
-          {selectedTab === 'banners' ? (
+          {selectedTab === 'announcements' ? (
             <>
               <EuiSpacer size="m" />
               <EuiSwitch
@@ -1036,24 +1037,24 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
             hasBorder
             hasShadow={false}
             css={
-              selectedTab === 'banners' && bannersPanelMode === 'subdued'
+              selectedTab === 'announcements' && announcementsPanelMode === 'subdued'
                 ? { backgroundColor: euiTheme.colors.backgroundBaseSubdued }
                 : undefined
             }
           >
             <TopicPanel
-              bannersPanelMode={bannersPanelMode}
+              announcementsPanelMode={announcementsPanelMode}
               dismissable={dismissable}
               hideDescription={!showDescription}
               hidePrimaryButton={!showActionButtons}
               hideSecondaryButton={
                 !showActionButtons || selectedTab === 'toasts' || !showSecondaryButton
               }
-              primaryButtonFill={selectedTab === 'banners' ? filledPrimaryButton : false}
-              layoutBreakpointPx={bannerLayoutBreakpointPx}
+              primaryButtonFill={selectedTab === 'announcements' ? filledPrimaryButton : false}
+              layoutBreakpointPx={announcementLayoutBreakpointPx}
               specimenDescription={specimenCopy[selectedTab].description}
               specimenTitle={specimenCopy[selectedTab].title}
-              stackBannerLeadMediaVertically={stackBannerLeadMediaVertically}
+              stackAnnouncementLeadMediaVertically={stackAnnouncementLeadMediaVertically}
               toastLiveResetKey={toastLiveResetKey}
               topic={selectedTab}
               screenshotPaddings={screenshotPaddings}

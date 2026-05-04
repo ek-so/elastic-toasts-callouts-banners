@@ -2,8 +2,8 @@ import { css } from '@emotion/react';
 import { useEuiTheme } from '@elastic/eui';
 import type { ComponentPropsWithoutRef } from 'react';
 
-export type BannerScreenshotProps = ComponentPropsWithoutRef<'div'> & {
-  /** Super-narrow banner: full-width media row on top of copy (see Figma). */
+export type AnnouncementScreenshotProps = ComponentPropsWithoutRef<'div'> & {
+  /** Super-narrow announcement: full-width media row on top of copy (see Figma). */
   mediaStackedLayout?: boolean;
 };
 
@@ -13,18 +13,18 @@ function assetSrc(file: string): string {
       ? __webpack_public_path__
       : '/';
   const base = publicPath.endsWith('/') ? publicPath : `${publicPath}/`;
-  return `${base}banners/${file}`;
+  return `${base}announcements/${file}`;
 }
 
-export function BannerScreenshot({
+export function AnnouncementScreenshot({
   children,
   mediaStackedLayout = false,
   ...rest
-}: BannerScreenshotProps) {
+}: AnnouncementScreenshotProps) {
   const { euiTheme } = useEuiTheme();
   const width = `${euiTheme.base * 20}px`;
   const minHeight = `${euiTheme.base * 10}px`;
-  /** Same as banner `specimenBorderRadius`; only the outer (leading) corners — inline-end stays square against copy. */
+  /** Same as announcement `specimenBorderRadius`; only the outer (leading) corners — inline-end stays square against copy. */
   const screenshotLeadingRadius = '4px';
 
   return (

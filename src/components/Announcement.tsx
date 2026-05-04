@@ -13,33 +13,32 @@ import {
 import type { ReactNode } from 'react';
 
 import { notificationSlots } from './notificationSlots';
-import { BannerScreenshot } from './BannerScreenshot';
+import { AnnouncementScreenshot } from './AnnouncementScreenshot';
 
-export type BannerSize = 'm' | 's' | 'l';
+export type AnnouncementSize = 'm' | 's' | 'l';
 
-/** Default M/L vector art in `public/banners/` (`default-m.svg` / `default-l.svg`); copied into `dist/banners/` on build. */
-function defaultBannerVectorArtSrc(size: Exclude<BannerSize, 's'>): string {
+/** Default M/L vector art in `public/announcements/` (`default-m.svg` / `default-l.svg`); copied into `dist/announcements/` on build. */
+function defaultAnnouncementVectorArtSrc(size: Exclude<AnnouncementSize, 's'>): string {
   const file = size === 'l' ? 'default-l' : 'default-m';
   const publicPath =
     typeof __webpack_public_path__ === 'string' && __webpack_public_path__ !== ''
       ? __webpack_public_path__
       : '/';
   const base = publicPath.endsWith('/') ? publicPath : `${publicPath}/`;
-  return `${base}banners/${file}.svg`;
+  return `${base}announcements/${file}.svg`;
 }
 
-
-export type BannerProps = {
+export type AnnouncementProps = {
   title: ReactNode;
   children?: ReactNode;
   /**
    * Optional media override (e.g. `<img alt="" />` or `<EuiIcon />`).
-   * When omitted: size `s` uses `<EuiIcon type="addDataApp" size="xl" />`; `m` / `l` use default vector art from `public/banners/`; `l` + `screenshot` uses the specimen PNG instead of `default-l.svg`.
+   * When omitted: size `s` uses `<EuiIcon type="addDataApp" size="xl" />`; `m` / `l` use default vector art from `public/announcements/`; `l` + `screenshot` uses the specimen PNG instead of `default-l.svg`.
    * Pass `null` to hide the lead slot entirely.
    */
   image?: ReactNode | null;
   /** `s` / `m` match callout spacing; `l` uses the same vertical content inset as `m` plus a wider horizontal shell (tokens). */
-  size?: BannerSize;
+  size?: AnnouncementSize;
   primaryLabel?: ReactNode;
   secondaryLabel?: ReactNode;
   onPrimaryClick?: () => void;
@@ -61,7 +60,7 @@ export type BannerProps = {
   dismissable?: boolean;
   /**
    * When the specimen panel uses a subdued page background, use `backgroundBasePlain` on the
-   * banner shell instead of `backgroundBaseHighlighted` so the banner still reads on the panel.
+   * announcement shell instead of `backgroundBaseHighlighted` so the announcement still reads on the panel.
    */
   onSubduedSpecimenPanel?: boolean;
   /**
@@ -74,17 +73,17 @@ export type BannerProps = {
   screenshotPaddings?: boolean;
   /**
    * Super-narrow specimen: lead media (icon, vector, or screenshot) spans the full width on top;
-   * title, body, and actions stack below (see Figma Banners–toasts–callouts super-narrow frames).
+   * title, body, and actions stack below (see Figma Announcements–toasts–callouts super-narrow frames).
    */
   stackLeadMediaVertically?: boolean;
 };
 
 /**
- * Full-width-style banner shell aligned to callout spacing and typography (no left stripe).
- * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. When `image` is omitted, size `s` uses `EuiIcon` (`addDataApp`, `xl`); `m` / `l` use default SVGs from `public/banners/`; `l` + `screenshot` uses `specimen-screenshot.png` in a **320×160** slot (`20×` / `10×` theme `base` px). Override or hide with `image` / `image={null}`. Lead slot: `2×` / `5×` / `7.5×` theme `base` (S / M / L); image-to-copy gap `size.base` on `s` (~16px at default scale) / `base` (`m`) / `l` (`l`). Default shell uses `backgroundBaseHighlighted` (or `backgroundBasePlain` when `onSubduedSpecimenPanel`); subdued border; body subdued; dismiss `text`.
+ * Full-width-style announcement shell aligned to callout spacing and typography (no left stripe).
+ * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. When `image` is omitted, size `s` uses `EuiIcon` (`addDataApp`, `xl`); `m` / `l` use default SVGs from `public/announcements/`; `l` + `screenshot` uses `specimen-screenshot.png` in a **320×160** slot (`20×` / `10×` theme `base` px). Override or hide with `image` / `image={null}`. Lead slot: `2×` / `5×` / `7.5×` theme `base` (S / M / L); image-to-copy gap `size.base` on `s` (~16px at default scale) / `base` (`m`) / `l` (`l`). Default shell uses `backgroundBaseHighlighted` (or `backgroundBasePlain` when `onSubduedSpecimenPanel`); subdued border; body subdued; dismiss `text`.
  * At container width ≥`layoutBreakpointPx` on the root, `notification-content-box` lays out lead and actions in a row with vertical centering (`align-items: center`) and `size.xxl` gap (~40px at default scale), matching wide callouts. When `stackLeadMediaVertically` is set, media stays above copy regardless of container width.
  */
-export function Banner({
+export function Announcement({
   title,
   children,
   image,
@@ -105,7 +104,7 @@ export function Banner({
   screenshot = false,
   screenshotPaddings = true,
   stackLeadMediaVertically = false,
-}: BannerProps) {
+}: AnnouncementProps) {
   const { euiTheme } = useEuiTheme();
   const bg = onSubduedSpecimenPanel
     ? euiTheme.colors.backgroundBasePlain
@@ -160,7 +159,7 @@ export function Banner({
   /** Top/bottom inset on the content box: size `l` only (`size.s` ≈ 8px); M/S have no extra block padding. */
   const copyStackPaddingBlock = useScreenshotArt ? euiTheme.size.l : isL ? euiTheme.size.s : 0;
   const actionsGutter = isS ? 'xs' : 's';
-  /** Large banner: primary/secondary use `m` controls; M/S stay `s`. */
+  /** Large announcement: primary/secondary use `m` controls; M/S stay `s`. */
   const actionButtonSize = isL ? 'm' : 's';
   const showPrimaryButton = !hidePrimaryButton;
   const showSecondaryButton = !hideSecondaryButton;
@@ -171,7 +170,7 @@ export function Banner({
         ? <EuiIcon type="addDataApp" size="xl" aria-hidden />
         : (
             <img
-              src={defaultBannerVectorArtSrc(size)}
+              src={defaultAnnouncementVectorArtSrc(size)}
               alt=""
               css={css`
                 display: block;
@@ -263,7 +262,7 @@ export function Banner({
   const wideLeadActionsMinWidth = `${layoutBreakpointPx}px`;
 
   const wideContentBoxRowCss = css`
-    @container banner (min-width: ${wideLeadActionsMinWidth}) {
+    @container announcement (min-width: ${wideLeadActionsMinWidth}) {
       flex-direction: row;
       align-items: center;
       gap: ${euiTheme.size.xxl};
@@ -316,7 +315,7 @@ export function Banner({
     max-width: 100%;
     min-width: 0;
     container-type: inline-size;
-    container-name: banner;
+    container-name: announcement;
     border-top-left-radius: ${specimenBorderRadius};
     border-bottom-left-radius: ${specimenBorderRadius};
     border-top-right-radius: ${specimenBorderRadius};
@@ -376,7 +375,7 @@ export function Banner({
   const actionsWideColumnCss = stackedLead
     ? css``
     : css`
-        @container banner (min-width: ${wideLeadActionsMinWidth}) {
+        @container announcement (min-width: ${wideLeadActionsMinWidth}) {
           flex-shrink: 0;
           align-self: stretch;
         }
@@ -385,7 +384,7 @@ export function Banner({
   const actionsWideFlexCss = stackedLead
     ? css``
     : css`
-        @container banner (min-width: ${wideLeadActionsMinWidth}) {
+        @container announcement (min-width: ${wideLeadActionsMinWidth}) {
           flex-direction: row-reverse;
         }
       `;
@@ -531,11 +530,11 @@ export function Banner({
       css={rootCss}
       role="status"
       aria-live="polite"
-      data-test-subj="banner"
-      data-banner-size={size}
-      data-banner-has-image={hasImage || undefined}
-      data-banner-screenshot={useScreenshotArt || undefined}
-      data-banner-stacked-media={stackedLead || undefined}
+      data-test-subj="announcement"
+      data-announcement-size={size}
+      data-announcement-has-image={hasImage || undefined}
+      data-announcement-screenshot={useScreenshotArt || undefined}
+      data-announcement-stacked-media={stackedLead || undefined}
     >
       {dismissable ? (
         <span css={closeCss}>
@@ -560,7 +559,7 @@ export function Banner({
         {hasImage ? (
           <div css={leadWithImageRowCss}>
             {useScreenshotArt ? (
-              <BannerScreenshot
+              <AnnouncementScreenshot
                 data-slot={notificationSlots.imageBox}
                 mediaStackedLayout={stackedFullWidthScreenshotTop}
               />
