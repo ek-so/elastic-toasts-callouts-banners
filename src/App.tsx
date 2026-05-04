@@ -70,6 +70,7 @@ function specimenSizeLabel(size: BannerSize): string {
 function BannerSizeSection({
   size,
   layoutBreakpointPx,
+  stackLeadMediaVertically,
   hideDescription,
   hidePrimaryButton,
   hideSecondaryButton,
@@ -82,6 +83,8 @@ function BannerSizeSection({
 }: {
   size: BannerSize;
   layoutBreakpointPx: number;
+  /** Banners super-narrow: media row on top, copy and actions below. */
+  stackLeadMediaVertically: boolean;
   hideDescription: boolean;
   hidePrimaryButton: boolean;
   hideSecondaryButton: boolean;
@@ -114,6 +117,7 @@ function BannerSizeSection({
             screenshot
             screenshotPaddings={screenshotPaddings}
             size={size}
+            stackLeadMediaVertically={stackLeadMediaVertically}
             title={specimenTitle}
           >
             {specimenDescription}
@@ -130,6 +134,7 @@ function BannerSizeSection({
           layoutBreakpointPx={layoutBreakpointPx}
           onSubduedSpecimenPanel={onSubduedSpecimenPanel}
           size={size}
+          stackLeadMediaVertically={stackLeadMediaVertically}
           title={specimenTitle}
         >
           {specimenDescription}
@@ -142,6 +147,7 @@ function BannerSizeSection({
 function TopicPanel({
   topic,
   layoutBreakpointPx,
+  stackBannerLeadMediaVertically,
   hideDescription,
   hidePrimaryButton,
   hideSecondaryButton,
@@ -155,6 +161,8 @@ function TopicPanel({
 }: {
   topic: TopicTab;
   layoutBreakpointPx: number;
+  /** Banners super-narrow: `Banner` stacks lead media above copy and actions. */
+  stackBannerLeadMediaVertically: boolean;
   hideDescription: boolean;
   hidePrimaryButton: boolean;
   hideSecondaryButton: boolean;
@@ -399,6 +407,7 @@ function TopicPanel({
             specimenTitle={specimenTitle}
             screenshotPaddings={screenshotPaddings}
             size="l"
+            stackLeadMediaVertically={stackBannerLeadMediaVertically}
           />
           <EuiFlexItem grow={false}>
             <EuiSpacer size="l" />
@@ -415,6 +424,7 @@ function TopicPanel({
             specimenTitle={specimenTitle}
             screenshotPaddings={screenshotPaddings}
             size="m"
+            stackLeadMediaVertically={stackBannerLeadMediaVertically}
           />
           <EuiFlexItem grow={false}>
             <EuiSpacer size="l" />
@@ -431,6 +441,7 @@ function TopicPanel({
             specimenTitle={specimenTitle}
             screenshotPaddings={screenshotPaddings}
             size="s"
+            stackLeadMediaVertically={stackBannerLeadMediaVertically}
           />
         </EuiFlexGroup>
       );
@@ -536,7 +547,8 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
    * Banners (three-way): viewport bands by the two breakpoints — below super-narrow → Narrow;
    * between super-narrow and main breakpoint → Super narrow when shrinking from Wide, when
    * widening after having been below super-narrow, or when already Super narrow; otherwise
-   * Narrow can stay Narrow in that band; at or above the main breakpoint, Super narrow → Wide.
+   * Narrow stays Narrow in that band. On viewports at or above the main breakpoint, the user’s
+   * choice (including Super narrow for a centered narrow column) is left unchanged.
    */
   useEffect(() => {
     const mqNarrow = window.matchMedia(`(max-width: ${narrowMaxWidthPx - 1}px)`);
@@ -562,9 +574,6 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
               return 'superNarrow';
             }
             return 'narrow';
-          }
-          if (prev === 'superNarrow') {
-            return 'wide';
           }
           return prev;
         });
@@ -626,6 +635,9 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
     selectedTab === 'banners' && resolvedContentWidth === 'superNarrow'
       ? superNarrowMaxWidthPx
       : narrowMaxWidthPx;
+
+  const stackBannerLeadMediaVertically =
+    selectedTab === 'banners' && resolvedContentWidth === 'superNarrow';
 
   const showSuperNarrowBpField =
     selectedTab === 'banners' && resolvedContentWidth === 'superNarrow';
@@ -1061,6 +1073,7 @@ export function App({ colorMode, onColorModeChange }: AppProps) {
               layoutBreakpointPx={bannerLayoutBreakpointPx}
               specimenDescription={specimenCopy[selectedTab].description}
               specimenTitle={specimenCopy[selectedTab].title}
+              stackBannerLeadMediaVertically={stackBannerLeadMediaVertically}
               toastLiveResetKey={toastLiveResetKey}
               topic={selectedTab}
               screenshotPaddings={screenshotPaddings}

@@ -72,12 +72,17 @@ export type BannerProps = {
   screenshot?: boolean;
   /** When `false` and using screenshot art, removes left, top, and bottom shell padding. Default `true`. */
   screenshotPaddings?: boolean;
+  /**
+   * Super-narrow specimen: lead media (icon, vector, or screenshot) spans the full width on top;
+   * title, body, and actions stack below (see Figma Banners–toasts–callouts super-narrow frames).
+   */
+  stackLeadMediaVertically?: boolean;
 };
 
 /**
  * Full-width-style banner shell aligned to callout spacing and typography (no left stripe).
  * Sizes `m` / `s` match callout rhythm; `l` uses wider horizontal inset on the shell and content-box block padding. When `image` is omitted, size `s` uses `EuiIcon` (`addDataApp`, `xl`); `m` / `l` use default SVGs from `public/banners/`; `l` + `screenshot` uses `specimen-screenshot.png` in a **320×160** slot (`20×` / `10×` theme `base` px). Override or hide with `image` / `image={null}`. Lead slot: `2×` / `5×` / `7.5×` theme `base` (S / M / L); image-to-copy gap `size.base` on `s` (~16px at default scale) / `base` (`m`) / `l` (`l`). Default shell uses `backgroundBaseHighlighted` (or `backgroundBasePlain` when `onSubduedSpecimenPanel`); subdued border; body subdued; dismiss `text`.
- * At container width ≥`layoutBreakpointPx` on the root, `notification-content-box` lays out lead and actions in a row with vertical centering (`align-items: center`) and `size.xxl` gap (~40px at default scale), matching wide callouts.
+ * At container width ≥`layoutBreakpointPx` on the root, `notification-content-box` lays out lead and actions in a row with vertical centering (`align-items: center`) and `size.xxl` gap (~40px at default scale), matching wide callouts. When `stackLeadMediaVertically` is set, media stays above copy regardless of container width.
  */
 export function Banner({
   title,
@@ -99,6 +104,7 @@ export function Banner({
   onSubduedSpecimenPanel = false,
   screenshot = false,
   screenshotPaddings = true,
+  stackLeadMediaVertically = false,
 }: BannerProps) {
   const { euiTheme } = useEuiTheme();
   const bg = onSubduedSpecimenPanel
@@ -192,6 +198,8 @@ export function Banner({
       : euiTheme.size.base;
   /** Screenshot (size L only): gap between image slot and copy. */
   const leadImageRowGap = useScreenshotArt ? euiTheme.size.xl : imageLeadGap;
+  const stackedLead = stackLeadMediaVertically && hasImage;
+  const leadRowGap = stackedLead ? euiTheme.size.l : leadImageRowGap;
   /** Cap lead copy width (75 × theme base ≈ 1200px at default scale). */
   const textBoxMaxWidth = `${euiTheme.base * 75}px`;
 
@@ -221,6 +229,35 @@ export function Banner({
     vertical-align: baseline;
   `;
 
+  /** Size S + stacked media: title and body as blocks (super-narrow Figma). */
+  const sLeadStackedWrapCss = css`
+    min-width: 0;
+    word-break: break-word;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: ${titleBodyGap};
+
+    h5,
+    .euiTitle {
+      margin-block: 0;
+      margin-inline: 0;
+      padding-block: 0;
+      padding-inline: 0;
+    }
+  `;
+  const sLeadStackedHeadingCss = css`
+    display: block;
+    margin: 0;
+  `;
+  const sLeadStackedBodyCss = css`
+    &.euiText {
+      display: block;
+    }
+    margin-block: 0;
+    margin-inline: 0;
+  `;
+
   const wideLeadActionsMinWidth = `${layoutBreakpointPx}px`;
 
   const wideContentBoxRowCss = css`
@@ -236,13 +273,21 @@ export function Banner({
     }
   `;
 
-  const leadWithImageRowCss = css`
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: ${leadImageRowGap};
-    min-width: 0;
-  `;
+  const leadWithImageRowCss = stackedLead
+    ? css`
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: ${leadRowGap};
+        min-width: 0;
+      `
+    : css`
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: ${leadRowGap};
+        min-width: 0;
+      `;
 
   const leadWithImageContentBoxCss = css`
     display: flex;
@@ -253,8 +298,13 @@ export function Banner({
     gap: ${leadToActionsGap};
     flex: 1;
     min-width: 0;
+    ${stackedLead
+      ? css`
+          width: 100%;
+        `
+      : css``}
     padding-block: ${copyStackPaddingBlock};
-    ${wideContentBoxRowCss}
+    ${stackedLead ? css`` : wideContentBoxRowCss}
   `;
 
   const rootCss = css`
@@ -283,7 +333,28 @@ export function Banner({
     right: ${closeInsetInline};
   `;
 
-  const imageSlotCss = css`
+  const imageSlotCss = stackedLead
+    ? css`
+        width: 100%;
+        min-width: 0;
+        height: auto;
+        min-height: ${isS ? euiTheme.size.xxl : `calc(${euiTheme.size.base} * 6)`};
+        max-height: ${isL ? `calc(${euiTheme.size.base} * 12)` : `calc(${euiTheme.size.base} * 8)`};
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: ${specimenBorderRadius};
+
+        img,
+        svg {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+      `
+    : css`
         width: ${imageSlotSize};
         height: ${imageSlotSize};
         flex-shrink: 0;
@@ -298,6 +369,23 @@ export function Banner({
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
+        }
+      `;
+
+  const actionsWideColumnCss = stackedLead
+    ? css``
+    : css`
+        @container banner (min-width: ${wideLeadActionsMinWidth}) {
+          flex-shrink: 0;
+          align-self: stretch;
+        }
+      `;
+
+  const actionsWideFlexCss = stackedLead
+    ? css``
+    : css`
+        @container banner (min-width: ${wideLeadActionsMinWidth}) {
+          flex-direction: row-reverse;
         }
       `;
 
@@ -336,15 +424,20 @@ export function Banner({
   const leadBlock = (
     <div data-slot={notificationSlots.textBox} css={leadColumnCss}>
       {isS ? (
-        <div css={sLeadWrapCss}>
+        <div css={stackedLead ? sLeadStackedWrapCss : sLeadWrapCss}>
           <EuiTitle size="xxs">
-            <h5 css={sLeadHeadingCss}>
+            <h5 css={stackedLead ? sLeadStackedHeadingCss : sLeadHeadingCss}>
               {title}
-              {!hideDescription ? '.' : null}
+              {!hideDescription && !stackedLead ? '.' : null}
             </h5>
           </EuiTitle>
           {!hideDescription && children != null ? (
-            <EuiText size="s" component="span" color="subdued" css={sLeadBodyCss}>
+            <EuiText
+              size="s"
+              color="subdued"
+              component={stackedLead ? 'div' : 'span'}
+              css={stackedLead ? sLeadStackedBodyCss : sLeadBodyCss}
+            >
               {children}
             </EuiText>
           ) : null}
@@ -374,11 +467,7 @@ export function Banner({
         flex-direction: column;
         justify-content: flex-end;
         min-height: 0;
-
-        @container banner (min-width: ${wideLeadActionsMinWidth}) {
-          flex-shrink: 0;
-          align-self: stretch;
-        }
+        ${actionsWideColumnCss}
       `}
     >
       <EuiFlexGroup
@@ -390,10 +479,7 @@ export function Banner({
         css={css`
           flex-grow: 0;
           flex-shrink: 0;
-
-          @container banner (min-width: ${wideLeadActionsMinWidth}) {
-            flex-direction: row-reverse;
-          }
+          ${actionsWideFlexCss}
         `}
       >
         {showPrimaryButton ? (
@@ -448,6 +534,7 @@ export function Banner({
       data-banner-size={size}
       data-banner-has-image={hasImage || undefined}
       data-banner-screenshot={useScreenshotArt || undefined}
+      data-banner-stacked-media={stackedLead || undefined}
     >
       {dismissable ? (
         <span css={closeCss}>
@@ -472,7 +559,10 @@ export function Banner({
         {hasImage ? (
           <div css={leadWithImageRowCss}>
             {useScreenshotArt ? (
-              <BannerScreenshot data-slot={notificationSlots.imageBox} />
+              <BannerScreenshot
+                data-slot={notificationSlots.imageBox}
+                mediaStackedLayout={stackedLead}
+              />
             ) : (
               <div data-slot={notificationSlots.imageBox} css={imageSlotCss}>
                 {resolvedImage}
