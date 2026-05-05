@@ -47,7 +47,7 @@ export type AnnouncementProps = {
   className?: string;
   /**
    * Root `inline-size` (px) at which `notification-content-box` lays out lead and actions in a row.
-   * Specimens pass the app “Layout breakpoint” value.
+   * The app passes fixed values matching the specimen column width.
    */
   layoutBreakpointPx?: number;
   /** When true, body copy (`children`) is omitted; title and actions stay. */
@@ -65,7 +65,8 @@ export type AnnouncementProps = {
   onSubduedSpecimenPanel?: boolean;
   /**
    * When `true` with `size="l"`, uses the specimen UI screenshot instead of the default vector art.
-   * The screenshot slot is **320×160** at the default theme scale (`20×` / `10×` theme `base` px).
+   * Side‑by‑side layout: **320×160** at the default theme scale (`20×` / `10×` theme `base` px).
+   * Super‑narrow stacked layout: full‑width row **300px** tall (`AnnouncementScreenshot`).
    * Ignored for `size="s"` / `"m"` and when `image` is set (including `null`).
    */
   screenshot?: boolean;

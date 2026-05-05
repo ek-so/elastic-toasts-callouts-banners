@@ -24,8 +24,8 @@ export function AnnouncementScreenshot({
   const { euiTheme } = useEuiTheme();
   const width = `${euiTheme.base * 20}px`;
   const minHeight = `${euiTheme.base * 10}px`;
-  /** Super-narrow stacked L screenshot row height (15 × theme `base` ≈ 240px at default scale). */
-  const stackedMediaHeight = `${euiTheme.base * 15}px`;
+  /** Super-narrow stacked large announcement: fixed screenshot row height. */
+  const stackedMediaHeight = '280px';
   /** Same as announcement `specimenBorderRadius`; only the outer (leading) corners — inline-end stays square against copy. */
   const screenshotLeadingRadius = '4px';
 

@@ -32,7 +32,7 @@ export type CalloutProps = {
   className?: string;
   /**
    * Root `inline-size` (px) at which lead copy and actions become a horizontal row.
-   * Specimens pass the app “Layout breakpoint” value so it stays in sync with narrow column width.
+   * The app passes a fixed breakpoint matching the specimen content column width.
    */
   layoutBreakpointPx?: number;
   /** When true, body copy (`children`) is omitted; title and actions stay. */
