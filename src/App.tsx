@@ -80,6 +80,12 @@ const DEFAULT_SUPER_NARROW_MAX_WIDTH_PX = 600;
 /** Toast specimens only: top-accent live countdown vs auto-dismiss (see Figma Announcements–toasts–callouts). */
 const TOAST_SPECIMEN_LIVE_MS = 15_000;
 
+/**
+ * Temporary: omit size-L announcement specimen that uses default vector art (`default-l.svg`).
+ * The L + screenshot specimen stays.
+ */
+const SHOW_ANNOUNCEMENT_L_VECTOR_SPECIMEN = false;
+
 /** Label above each specimen row, aligned with callouts (`Size M`, `Size S`, …). */
 function specimenSizeLabel(size: AnnouncementSize): string {
   return `Size ${size.toUpperCase()}`;
@@ -142,22 +148,24 @@ function AnnouncementSizeSection({
           </Announcement>
         </EuiFlexItem>
       ) : null}
-      <EuiFlexItem grow={false}>
-        <Announcement
-          dismissable={dismissable}
-          hideDescription={hideDescription}
-          hidePrimaryButton={hidePrimaryButton}
-          primaryButtonFill={primaryButtonFill}
-          hideSecondaryButton={hideSecondaryButton}
-          layoutBreakpointPx={layoutBreakpointPx}
-          onSubduedSpecimenPanel={onSubduedSpecimenPanel}
-          size={size}
-          stackLeadMediaVertically={stackLeadMediaVertically}
-          title={specimenTitle}
-        >
-          {specimenDescription}
-        </Announcement>
-      </EuiFlexItem>
+      {size !== 'l' || SHOW_ANNOUNCEMENT_L_VECTOR_SPECIMEN ? (
+        <EuiFlexItem grow={false}>
+          <Announcement
+            dismissable={dismissable}
+            hideDescription={hideDescription}
+            hidePrimaryButton={hidePrimaryButton}
+            primaryButtonFill={primaryButtonFill}
+            hideSecondaryButton={hideSecondaryButton}
+            layoutBreakpointPx={layoutBreakpointPx}
+            onSubduedSpecimenPanel={onSubduedSpecimenPanel}
+            size={size}
+            stackLeadMediaVertically={stackLeadMediaVertically}
+            title={specimenTitle}
+          >
+            {specimenDescription}
+          </Announcement>
+        </EuiFlexItem>
+      ) : null}
     </>
   );
 }
